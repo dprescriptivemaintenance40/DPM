@@ -1,0 +1,102 @@
+<div *ngIf="Loading" class="col-md-12" align="center" style="position: absolute;top: 10em;z-index: 10000;">
+    <div class="dot-pulse">
+
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div style="float: left;">
+            <h3><span style="color: red;font-size: 2.5em;">*</span><span>Train Your Data</span> </h3>
+        </div>
+        <div style="float: right;">
+            <button class="bttn-custom" title="Export CSV" (click)="exportCSV()" style="font-size: 3em;color: green;"><i class="fa fa-file-excel-o"></i></button>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="row col-md-12">
+    <div class="col-md-2">
+        <label>Cluster</label>
+        <input type="number" title="Number of Cluster" class="form-control" [(ngModel)]="nCluster">
+    </div>
+    <div class="col-md-2">
+        <label>Iteration</label>
+        <input type="number" title="Number of Iteration" class="form-control" [(ngModel)]="maxIterate">
+    </div>
+    <div class="col-md-2">
+        <label>State</label>
+        <input type="number" title="Number of Iteration" class="form-control" [(ngModel)]="randomState">
+    </div>
+    <div class="col-md-2">
+        <label>Tolerance</label>
+        <input type="number" title="Number of Tolerance" class="form-control" [(ngModel)]="tolerance">
+    </div>
+    <div class="col-md-3" style="position: relative;top: 1.44em;">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+            </div>
+            <div class="custom-file">
+                <input type="file" (change)="fileChange($event)" class="custom-file-input" accept=".csv" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                <label class="custom-file-label" for="inputGroupFile01">Choose Train File</label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1" style="position: relative;top: 1.44em;">
+        <button type="submit" class="btn btn-success" (click)="Submit()">Submit</button>
+    </div>
+</div>
+
+<div class="col-md-12" style="margin: 1em 0 1em 0;"></div>
+<div class="col-md-12" align="center" *ngIf="totalRecord.length>0">
+    <h2>BELOW IS YOUR TRAINED CLUSTER.</h2><br>
+    <h4><a [routerLink]="['/MainApp/User']">DO YOU WANT TO GET PREDICTED DATA FROM TEST FILE?</a></h4>
+</div>
+<div class="row" *ngIf="totalRecord.length>0">
+    <div class="col-lg-12">
+        <div style="float: right;margin: 1em; ">
+            <button class="btn btn-primary" title="Show Chart" (click)="showChart()">Show Chart</button>
+        </div>
+    </div>
+</div>
+<div class="col-md-12" *ngIf="totalRecord.length>0">
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <th *ngFor="let col of CentroidColumns">{{col}}</th>
+        </thead>
+        <tbody>
+            <tr *ngFor="let colObj of centroids">
+                <td *ngFor="let col of CentroidColumns"> {{colObj[col]}}</td>
+            </tr>
+        </tbody>
+        <tfoot class="tbl_pagination">
+            <tr>
+                <td colspan="10">
+                    <pagination [perPages]="[{pageSize:5},{pageSize:10},{pageSize:15}]" [totalRecord]="totalRecord" [align]="'right'" (selectedRecord)="AdminSelectRecords($event)"></pagination>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+</div>
+
+<div class="modal" @fade *ngIf="modalChart">
+    <div class="modal-dialog col-md-6">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Histogram</h5>
+                <button type="button" class="close" (click)="modalChart = false">
+            <span aria-hidden="true">&times;</span>
+          </button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="width:100%;">
+                    <canvas id="myChart" width="700" height="250" #mychart></canvas>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="modalChart = false">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,191 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import './assets/css/bootstrap.css';
+@import './assets/css/main.css';
+@import './assets/css/util.css';
+
+/*Custom Title*/
+
+[data-title]:hover:after {
+    opacity: 1;
+    transition: all 0.1s ease 0.5s;
+    visibility: visible;
+}
+
+[data-title]:after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: -1.6em;
+    left: 100%;
+    padding: 4px 4px 4px 8px;
+    color: #666;
+    white-space: nowrap;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    -moz-box-shadow: 0px 0px 4px #666;
+    -webkit-box-shadow: 0px 0px 4px #666;
+    box-shadow: 0px 0px 4px #666;
+    background-image: -moz-linear-gradient(top, #f0eded, #bfbdbd);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f0eded), color-stop(1, #bfbdbd));
+    background-image: -webkit-linear-gradient(top, #f0eded, #bfbdbd);
+    background-image: -moz-linear-gradient(top, #f0eded, #bfbdbd);
+    background-image: -ms-linear-gradient(top, #f0eded, #bfbdbd);
+    background-image: -o-linear-gradient(top, #f0eded, #bfbdbd);
+    opacity: 0;
+    z-index: 99999;
+    visibility: hidden;
+}
+
+[data-title] {
+    position: relative;
+}
+
+.dot-pulse {
+    position: relative;
+    left: -9999px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #9880ff;
+    color: #9880ff;
+    box-shadow: 9999px 0 0 -5px #9880ff;
+    animation: dot-pulse 1.5s infinite linear;
+    animation-delay: .25s;
+}
+
+.dot-pulse::before,
+.dot-pulse::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #9880ff;
+    color: #9880ff;
+}
+
+.dot-pulse::before {
+    box-shadow: 9984px 0 0 -5px #9880ff;
+    animation: dot-pulse-before 1.5s infinite linear;
+    animation-delay: 0s;
+}
+
+.dot-pulse::after {
+    box-shadow: 10014px 0 0 -5px #9880ff;
+    animation: dot-pulse-after 1.5s infinite linear;
+    animation-delay: .5s;
+}
+
+@keyframes dot-pulse-before {
+    0% {
+        box-shadow: 9984px 0 0 -5px #9880ff;
+    }
+    30% {
+        box-shadow: 9984px 0 0 2px #9880ff;
+    }
+    60%,
+    100% {
+        box-shadow: 9984px 0 0 -5px #9880ff;
+    }
+}
+
+@keyframes dot-pulse {
+    0% {
+        box-shadow: 9999px 0 0 -5px #9880ff;
+    }
+    30% {
+        box-shadow: 9999px 0 0 2px #9880ff;
+    }
+    60%,
+    100% {
+        box-shadow: 9999px 0 0 -5px #9880ff;
+    }
+}
+
+@keyframes dot-pulse-after {
+    0% {
+        box-shadow: 10014px 0 0 -5px #9880ff;
+    }
+    30% {
+        box-shadow: 10014px 0 0 2px #9880ff;
+    }
+    60%,
+    100% {
+        box-shadow: 10014px 0 0 -5px #9880ff;
+    }
+}
+
+.pagination li {
+    cursor: pointer;
+    border: 1px solid;
+    margin: 1em;
+    padding: 0.25em;
+}
+
+.disabled {
+    pointer-events: none;
+    color: #999;
+}
+
+tfoot.tbl_pagination tr td {
+    text-align: center;
+    font-weight: bold;
+}
+
+tfoot.tbl_pagination tr td .fa {
+    background: #999;
+    color: #fff;
+    width: 25px;
+    height: 25px;
+    font-style: initial;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    line-height: 25px;
+    border-radius: 0.3em;
+}
+
+tfoot.tbl_pagination tr td select {
+    color: #2a2b41;
+}
+
+tfoot.tbl_pagination tr td .fa:hover {
+    background: #2a2b41;
+    cursor: pointer;
+}
+
+tfoot.tbl_pagination tr td ul {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    justify-content: space-around;
+}
+
+tfoot.tbl_pagination tr td ul li {
+    list-style-type: none;
+    width: 100%;
+    font-family: arial black;
+    color: #6885a5;
+}
+
+tfoot.tbl_pagination tr td ul li:first-child {
+    text-align: left;
+}
+
+tfoot.tbl_pagination tr td ul li:nth-child(2) {
+    text-align: center;
+}
+
+tfoot.tbl_pagination tr td ul li:last-child {
+    text-align: right;
+}
+
+tfoot.tbl_pagination tr td .pagi_cls {
+    display: block;
+    width: 100%;
+}

@@ -1,0 +1,26 @@
+<style>
+    .pagination li {
+        cursor: pointer;
+        border: 1px solid;
+        margin: 1em;
+        padding: 0.25em;
+    }
+    
+    .disabled {
+        pointer-events: none;
+        color: #999;
+    }
+</style>
+<div class="pagi_cls" align="{{align}}">
+    <ul>
+        <li> Items per page:
+            <select (change)="SelectItemPer($event.target.value)" [(ngModel)]="itemPerPageSelected">
+              <option *ngFor="let row of perPages" value="{{row.pageSize}}">{{row.pageSize}}</option>
+            </select>
+        </li>
+        <li> <span> showing {{currentPage + 1}}&nbsp;-&nbsp;{{endPage}} &nbsp;of&nbsp;{{totalRecordSize}}</span> &nbsp;&nbsp;</li>
+        <li><i [ngClass]="{disabled:currentPage===0}" (click)="previous()" class="fa fa-angle-left"></i> &nbsp;&nbsp;
+            <i [ngClass]="{disabled:totalRecordSize<=endPage}" (click)="next()" class="fa fa-angle-right"></i>
+        </li>
+    </ul>
+</div>
