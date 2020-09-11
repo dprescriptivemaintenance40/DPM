@@ -33,7 +33,8 @@
             </div>
             <div class="custom-file">
                 <input type="file" (change)="fileTestChange($event)" class="custom-file-input" accept=".csv" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                <label class="custom-file-label" for="inputGroupFile01">Choose Test File</label>
+                <label class="custom-file-label" *ngIf="fileName == ''" for="inputGroupFile01">Choose Train File</label>
+                <label class="custom-file-label" *ngIf="fileName != ''" for="inputGroupFile01">{{fileName}}</label>
             </div>
         </div>
     </div>

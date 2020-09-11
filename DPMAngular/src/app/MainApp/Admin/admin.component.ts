@@ -40,7 +40,27 @@ export class AdminComponent {
     ctx: any;
     public ChartData: any;
     public histogramData: any = [];
-    public labelData: any = []
+    public labelData: any = [];
+    public scatterData: any = [];
+    public scatterClusterData: any = [];
+    public scatterDatasets: any = [];
+    public backgroundColor = [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)'
+    ];
+
+    public scaleLabelX: string = "";
+    public scaleLabelY: string = "";
     constructor(public title: Title,
         public http: HttpClient,
         public changeDetectorRef: ChangeDetectorRef,
@@ -77,17 +97,45 @@ export class AdminComponent {
             this.Loading = true;
             this.CentroidColumns = [];
             this.totalRecord = [];
+            this.scatterDatasets = [];
             this.http.post('/Centroids?n_clusters=' + this.nCluster + '&iterate=' + this.maxIterate + '&tolerance=' + this.tolerance + '&random_state=' + this.randomState, formData, { responseType: 'json' })
                 .subscribe((res: any) => {
                     console.log(res);
                     this.CentroidColumns = res[0];
+                    this.scaleLabelX = this.CentroidColumns[0];
+                    this.scaleLabelY = this.CentroidColumns[1];
                     this.histogramData = [];
                     this.labelData = [];
+                    this.scatterClusterData = res[4];
+                    let objScatter = new Object();
+                    objScatter['pointBackgroundColor'] = 'black';
+                    objScatter['pointBorderColor'] = 'black';
+                    objScatter['pointRadius'] = '10';
+                    objScatter['data'] = this.scatterClusterData;
+                    objScatter['pointStyle'] = 'star';
+                    objScatter['borderWidth'] = 3;
+                    this.scatterDatasets.push(objScatter);
+                    res[2].forEach((i, index) => {
+                        let data = [];
+                        res[3].forEach(j => {
+                            if (j.label == i.name) {
+                                data.push(j);
+                            }
+                        });
+                        let objScatter = new Object();
+                        objScatter['pointBackgroundColor'] = this.backgroundColor[index];
+                        objScatter['pointBorderColor'] = this.backgroundColor[index];
+                        objScatter['pointRadius'] = '10';
+                        objScatter['data'] = data;
+                        this.scatterDatasets.push(objScatter);
+                    });
                     res[2].forEach(a => {
                         this.histogramData.push(a.value)
                         this.labelData.push(a.name)
+
                     });
                     this.totalRecord = res[1];
+                    this.scatterData = res[3];
                     this.Loading = false;
                 }, err => {
                     this.Loading = false;
@@ -150,48 +198,35 @@ export class AdminComponent {
 
         let myChart = new Chart('myChart', {
             type: "scatter",
-            // title: {
-            //     text: "Real Estate Rates"
-            // },
-            // axisX: {
-            //     title: "Area (in sq. ft)",
-            //     minimum: 790,
-            //     maximum: 2260
-            // },
-            // axisY: {
-            //     title: "Price (in USD)",
-            //     valueFormatString: "$#,##0k"
-            // },
-            data: {
-                datasets: [{
-                     label: 'Scatter Dataset',
-                    // pointBackgroundColor: ['yellow', 'blue', 'red', 'green', 'orange', 'indigo'],
-                    data: [{ x: 800, y: 350 },
-                    { x: 900, y: 450 },
-                    { x: 850, y: 450 },
-                    { x: 1250, y: 700 },
-                    { x: 1100, y: 650 },
-                    { x: 1350, y: 850 },
-                    { x: 1200, y: 900 },
-                    { x: 1410, y: 1250 },
-                    { x: 1250, y: 1100 },
-                    { x: 1400, y: 1150 },
-                    { x: 1500, y: 1050 },
-                    { x: 1330, y: 1120 },
-                    { x: 1580, y: 1220 },
-                    { x: 1620, y: 1400 },
-                    { x: 1250, y: 1450 },
-                    { x: 1350, y: 1600 },
-                    { x: 1650, y: 1300 },
-                    { x: 1700, y: 1620 },
-                    { x: 1750, y: 1700 },
-                    { x: 1830, y: 1800 },
-                    { x: 1900, y: 2000 },
-                    { x: 2050, y: 2200 },
-                    { x: 2150, y: 1960 },
-                    { x: 2250, y: 1990 }]
+            options: {
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display:true,
+                            labelString: this.scaleLabelX
+                        },
+                        gridLines: {
+                            drawBorder: false,
+                        },
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display:true,
+                            labelString: this.scaleLabelY
+                        },
+                        gridLines: {
+                            drawBorder: false,
+                        },
+                    }]
+
+                },
+                legend: {
+                    display: false
                 }
-                ]
+            },
+            data: {
+                labels: [],
+                datasets: this.scatterDatasets
             }
             // type: 'bar',
             // data: {
@@ -230,23 +265,8 @@ export class AdminComponent {
             //         borderWidth: 1
             //     }]
             // },
-            // options: {
-            //     responsive: false,
-            //     scales: {
-            //         xAxes: [{
-            //             ticks: {
-            //                 maxRotation: 90,
-            //                 minRotation: 80
-            //             }
-            //         }],
-            //         yAxes: [{
-            //             ticks: {
-            //                 beginAtZero: true
-            //             }
-            //         }]
-            //     }
-            // }
-            
+
+
         });
     }
 

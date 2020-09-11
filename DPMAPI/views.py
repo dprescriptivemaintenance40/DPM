@@ -25,6 +25,7 @@ def centroids(request):
       random_state = request.GET['random_state']
       file = request.FILES['uploadFile']
       data = pd.read_csv(file).replace(np.nan, 0)
+      temp = data;
       dirName = os.path.join(BASE_DIR, 'DPMAPI/static/Files')
       if (path.exists(dirName)):
         isPresent = path.exists(os.path.join(dirName, "U1TrainFile.csv"))
@@ -64,6 +65,26 @@ def centroids(request):
         dataCount.append(dict(zip(['name','value'], row)))
       json_data.append(data)
       json_data.append(dataCount)
+
+      scatterdata = []
+      temp.index.name = 'id'
+      predicted = kmeans.predict(temp)
+      predicteddf = pd.DataFrame(data=predicted.flatten())
+      predicteddf.index.name = 'id'
+      final = pd.merge(predicteddf, temp, on='id')
+      finaldf = pd.DataFrame(final)
+      finalresult = finaldf.to_json(orient="values")
+      finalparsed = json.loads(finalresult)
+      for row in finalparsed:
+        scatterdata.append(dict(zip(['label', 'x', 'y'], row)))
+
+      scatterClusterData = []
+      for row in parsed:
+       scatterClusterData.append(dict(zip(['x', 'y'], row)))
+
+
+      json_data.append(scatterdata)
+      json_data.append(scatterClusterData)
       return JsonResponse(json_data , safe=False)
   except Exception as e:
     return JsonResponse(e, safe=False)
