@@ -56,7 +56,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div style="float: left;">
-            <h3><span style="color: red;font-size: 2.5em;">*</span><span>Train Your Data</span> </h3>
+            <h3><span style="color: red;font-size: 2.5em;">*</span><span>Rule Engine With Data</span> </h3>
         </div>
         <div style="float: right;">
             <button class="bttn-custom" title="Export CSV" (click)="exportCSV()" style="font-size: 3em;color: green;"><i class="fa fa-file-excel-o"></i></button>
@@ -100,10 +100,9 @@
 
 <div class="col-md-12" style="margin: 1em 0 1em 0;"></div>
 <div class="col-md-12" align="center" *ngIf="totalRecord.length>0">
-    <h2>BELOW IS YOUR TRAINED CLUSTER.</h2><br>
+    <h2>BELOW IS YOUR TRAINED CLUSTER WITH RULE ENGINE.</h2><br>
     <h4><a [routerLink]="['/MainApp/User']">DO YOU WANT TO GET PREDICTED DATA FROM TEST FILE?</a></h4>
 </div>
-<!-- *ngIf="totalRecord.length>0" -->
 <div class="row" *ngIf="totalRecord.length>0">
     <div class="col-lg-12">
         <div style="float: right;margin: 1em; ">
@@ -116,12 +115,11 @@
 <div class="col-md-12" *ngIf="totalRecord.length>0">
     <table class="table table-striped">
         <thead class="thead-dark">
-            <th *ngFor="let col of CentroidColumns">
-                <span *ngIf="col != 'label'">{{col}}</span></th>
+            <th *ngFor="let col of CentroidColumns"><span *ngIf="col != 'label'">{{col}}</span></th>
         </thead>
         <tbody>
             <tr *ngFor="let colObj of centroids">
-                <td *ngFor="let col of CentroidColumns"><span *ngIf="col != 'label'">{{colObj[col]}}</span> </td>
+                <td *ngFor="let col of CentroidColumns"><span *ngIf="col != 'label'">{{colObj[col]}}</span></td>
             </tr>
         </tbody>
         <tfoot class="tbl_pagination">
@@ -146,20 +144,9 @@
             </div>
             <div class="modal-body">
                 <div class="col-md-12" style="width:100%;">
-                    <!-- <highcharts-chart [Highcharts]="hcharts" [options]="scatterTrainChart">
-
-                    </highcharts-chart> -->
                     <canvas id="myChart" width="700" height="250" #mychart></canvas>
                 </div>
             </div>
-            <!-- <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="modalChart = false">Close</button>
-            </div> -->
         </div>
     </div>
 </div>
-<!-- <div class="col-md-12" style="width:100%;">
-    <highcharts-chart [Highcharts]="hcharts" [options]="scatterTrainChart">
-
-    </highcharts-chart>
-</div> -->

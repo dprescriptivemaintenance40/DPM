@@ -40,18 +40,44 @@ def centroids(request):
       # isPresent = path.exists(os.path.join(dirName, "U1TrainFile.csv"))
 
       column = list(data.columns)
-      kmeans = KMeans(n_clusters=int(n_clusters), init='random', max_iter=int(iterate), tol=float(tolerance),
-                      random_state=int(random_state)).fit(data)
+      # k-means++
+      kmeans = KMeans(n_clusters=int(n_clusters),
+                      init='k-means++',
+                      max_iter=int(iterate),
+                      tol=float(tolerance),
+                      random_state=int(random_state),
+                      algorithm='auto').fit(data)
       mydata = np.array(data)
       centroids = (kmeans.cluster_centers_)
+      df = pd.DataFrame(kmeans.cluster_centers_)
+      df.columns = column
+      df['Predicted Results'] = ""
+      df['label'] = "";
       count = Counter(kmeans.labels_)
-      countList =  [list(i) for i in count.most_common()]
-      sort = countList.sort()
+      countList = [list(i) for i in count.most_common()]
       dfCount = pd.DataFrame(countList)
+      for col in column:
+          for i, row in enumerate(df[col]):
+              max = df[col].max()
+              min = df[col].min()
+              df['label'][i] = dfCount[0][i]
+              if max == row:
+                  df['Predicted Results'][i] = 'incipient state'
+                  dfCount[0][i] = 'incipient state'
+              elif min == row:
+                  df['Predicted Results'][i] = 'normal state'
+                  dfCount[0][i] = 'normal state'
+              else:
+                  df['Predicted Results'][i] = 'anomaly state'
+                  dfCount[0][i] = 'anomaly state'
+          break
+
+      column = list(df.columns)
+
+      sort = countList.sort()
+
       resultCount = dfCount.to_json(orient="values")
       parsedCount = json.loads(resultCount)
-
-      df = pd.DataFrame(centroids)
       result = df.to_json(orient="values")
       parsed = json.loads(result)
       json_data = []
@@ -72,7 +98,14 @@ def centroids(request):
       predicteddf = pd.DataFrame(data=predicted.flatten())
       predicteddf.index.name = 'id'
       final = pd.merge(predicteddf, temp, on='id')
+      final.rename(columns={0: 'label'}, inplace = True)
       finaldf = pd.DataFrame(final)
+      finaldf['Predicted Results'] = ""
+      for i, row in enumerate(df['label']):
+          for j, val in enumerate(finaldf['label']):
+            if row == val:
+               finaldf['Predicted Results'][j] = df['Predicted Results'][i]
+
       finalresult = finaldf.to_json(orient="values")
       finalparsed = json.loads(finalresult)
       for row in finalparsed:
@@ -101,19 +134,50 @@ def predicted(request):
        trainFile = os.path.join(BASE_DIR, 'DPMAPI/static/Files/U1TrainFile.csv')
        testFile = request.FILES['testFile']
        trainData = pd.read_csv(trainFile).replace(np.nan, 0)
-       kmeans = KMeans(n_clusters=int(n_clusters), init='random', max_iter=int(iterate), tol=float(tolerance),
+       kmeans = KMeans(n_clusters=int(n_clusters), init='k-means++', max_iter=int(iterate), tol=float(tolerance),
                        random_state=int(random_state)).fit(trainData)
        testdata = pd.read_csv(testFile).replace(np.nan, 0)
+
+       column = list(testdata.columns)
+       df = pd.DataFrame(kmeans.cluster_centers_)
+       df.columns = column
+       df['Predicted Results'] = ""
+       df['label'] = "";
+       count = Counter(kmeans.labels_)
+       countList = [list(i) for i in count.most_common()]
+       dfCount = pd.DataFrame(countList)
+       for col in column:
+           for i, row in enumerate(df[col]):
+               max = df[col].max()
+               min = df[col].min()
+               df['label'][i] = dfCount[0][i]
+               if max == row:
+                   df['Predicted Results'][i] = 'incipient state'
+                   dfCount[0][i] = 'incipient state'
+               elif min == row:
+                   df['Predicted Results'][i] = 'normal state'
+                   dfCount[0][i] = 'normal state'
+               else:
+                   df['Predicted Results'][i] = 'anomaly state'
+                   dfCount[0][i] = 'anomaly state'
+           break
+       column = list(df.columns)
        testdata.index.name = 'id'
        predicted = kmeans.predict(testdata)
        predicteddf = pd.DataFrame(data=predicted.flatten())
        predicteddf.index.name = 'id'
        final = pd.merge(predicteddf, testdata, on='id')
-       column = list(final.columns)
-       # final.to_csv("E:\\ShivSirProject\\Files\\Predicted.csv")
-       df = pd.DataFrame(final)
-       result = df.to_json(orient="values")
-       parsed = json.loads(result)
+       final.rename(columns={0: 'label'}, inplace=True)
+       finaldf = pd.DataFrame(final)
+       finaldf['Predicted Results'] = ""
+       for i, row in enumerate(df['label']):
+           for j, val in enumerate(finaldf['label']):
+               if row == val:
+                   finaldf['Predicted Results'][j] = df['Predicted Results'][i]
+
+       finalresult = finaldf.to_json(orient="values")
+       column = list(finaldf.columns)
+       parsed = json.loads(finalresult)
        json_data = []
        json_data.append(column)
        data = []

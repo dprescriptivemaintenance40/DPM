@@ -50,12 +50,12 @@
 <div class="col-md-12" *ngIf="totalRecord.length>0">
     <table class="table table-striped">
         <thead class="thead-dark">
-            <th *ngFor="let col of PredicatedColumns">{{col}}</th>
+            <th *ngFor="let col of PredicatedColumns"><span *ngIf="col != 'label'">{{col}}</span></th>
         </thead>
         <tbody>
 
             <tr *ngFor="let colObj of PredicatedData">
-                <td *ngFor="let col of PredicatedColumns"> {{colObj[col]}}</td>
+                <td *ngFor="let col of PredicatedColumns"><span *ngIf="col != 'label'">{{colObj[col]}}</span> </td>
             </tr>
 
         </tbody>

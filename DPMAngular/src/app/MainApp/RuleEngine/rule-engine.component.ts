@@ -1,16 +1,13 @@
-import { Component, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ChangeDetectorRef, Component } from '@angular/core'
 import { Title } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import * as xlsx from 'xlsx'
 import * as moment from 'moment';
 import { Chart } from 'chart.js'
-import { trigger, state, transition, animate, style } from '@angular/animations';
-import * as Highcharts from 'highcharts/highcharts.src';
-import highcharts3D from 'highcharts/highcharts-3d.src';
-highcharts3D(Highcharts);
 
 @Component({
-    templateUrl: './admin.component.html',
+    templateUrl: './rule-engine.component.html',
     animations: [trigger('fade', [
         state('void', style({ opacity: 0 })),
         transition(':enter,:leave', [
@@ -18,8 +15,8 @@ highcharts3D(Highcharts);
         ])
     ])]
 })
-export class AdminComponent {
-    hcharts = Highcharts;
+export class RuleEngineComponent {
+
     public centroids: any = [];
     public columns: any = [];
     public nCluster: number = 0;
@@ -38,10 +35,6 @@ export class AdminComponent {
     public totalRecord: any = [];
     public CentroidColumns: any = [];
     public modalChart: boolean = false;
-    // @ViewChild('histogram', { static: true }) public chartRef: ElementRef<any>;
-    @ViewChild('mychart') mychart;
-    canvas: any;
-    ctx: any;
     public ChartData: any;
     public histogramData: any = [];
     public labelData: any = [];
@@ -65,37 +58,36 @@ export class AdminComponent {
 
     public scaleLabelX: string = "";
     public scaleLabelY: string = "";
-    public scatterTrainData: any = [];
-    // public scatterTrainData: any = [{
-    //     name: 'Data',
-    //     colorByPoint: true,
-    //     accessibility: {
-    //         exposeAsGroupOnly: true
-    //     },
-    //     data: [
-    //         [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
-    //         [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
-    //         [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
-    //         [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
-    //         [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
-    //         [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
-    //         [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
-    //         [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
-    //         [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
-    //         [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
-    //         [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
-    //         [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
-    //         [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
-    //         [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
-    //         [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
-    //         [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
-    //         [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
-    // }];
+
+    public scatterTrainData: any = [{
+        name: 'Data',
+        colorByPoint: true,
+        accessibility: {
+            exposeAsGroupOnly: true
+        },
+        data: [
+            [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
+            [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
+            [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
+            [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
+            [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
+            [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
+            [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
+            [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
+            [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
+            [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
+            [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
+            [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
+            [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
+            [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
+            [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
+            [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
+            [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
+    }];
     public scatterTrainChart: any;
     constructor(public title: Title,
         public http: HttpClient,
-        public changeDetectorRef: ChangeDetectorRef,
-        public elementRef: ElementRef) {
+        public changeDetectorRef: ChangeDetectorRef) {
         this.title.setTitle("Admin | Dynamic Preventative Maintenance")
         this.itemPerPageSelected = this.perPages[0].pageSize;
         this.scatterTrainChart = {
@@ -276,10 +268,10 @@ export class AdminComponent {
                     obj1['name'] = 'Clusters';
                     obj1['data'] = this.scatterClusterData;
                     this.scatterTrainData.push(obj1)
-                    res[1].forEach((i, index) => {
+                    res[2].forEach((i, index) => {
                         let data = [];
                         res[3].forEach(j => {
-                            if (j.label == i.label) {
+                            if (j.label == i.name) {
                                 data.push(j);
                             }
                         });
@@ -546,8 +538,6 @@ export class AdminComponent {
 
         this.modalChart = true;
         this.changeDetectorRef.detectChanges();
-        this.canvas = this.mychart.nativeElement;
-        this.ctx = this.canvas.getContext('3d');
         var lineChart = new Chart('myChart', {
             type: 'line',
             data: {

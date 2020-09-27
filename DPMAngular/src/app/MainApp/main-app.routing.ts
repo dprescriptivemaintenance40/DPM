@@ -3,6 +3,7 @@ import { RouterModule } from "@angular/router";
 import { MainAppComponent } from "./main-app.component";
 import { AdminComponent } from "./Admin/admin.component";
 import { UserComponent } from "./User/user.component";
+import { RuleEngineComponent } from './RuleEngine/rule-engine.component';
 
 @NgModule({
     imports: [
@@ -13,6 +14,7 @@ import { UserComponent } from "./User/user.component";
                     { path: '', redirectTo: "Admin", pathMatch: "full" },
                     { path: 'Admin', component: AdminComponent },
                     { path: 'User', component: UserComponent },
+                    { path: 'RuleEngine', component: RuleEngineComponent },
                 ]
             },
 
