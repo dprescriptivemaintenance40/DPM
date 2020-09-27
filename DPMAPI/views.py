@@ -51,7 +51,7 @@ def centroids(request):
       centroids = (kmeans.cluster_centers_)
       df = pd.DataFrame(kmeans.cluster_centers_)
       df.columns = column
-      df['Predicted Results'] = ""
+      df['Classifications'] = ""
       df['label'] = "";
       count = Counter(kmeans.labels_)
       countList = [list(i) for i in count.most_common()]
@@ -62,13 +62,13 @@ def centroids(request):
               min = df[col].min()
               df['label'][i] = dfCount[0][i]
               if max == row:
-                  df['Predicted Results'][i] = 'incipient state'
+                  df['Classifications'][i] = 'incipient state'
                   dfCount[0][i] = 'incipient state'
               elif min == row:
-                  df['Predicted Results'][i] = 'normal state'
+                  df['Classifications'][i] = 'normal state'
                   dfCount[0][i] = 'normal state'
               else:
-                  df['Predicted Results'][i] = 'anomaly state'
+                  df['Classifications'][i] = 'anomaly state'
                   dfCount[0][i] = 'anomaly state'
           break
 
@@ -100,11 +100,11 @@ def centroids(request):
       final = pd.merge(predicteddf, temp, on='id')
       final.rename(columns={0: 'label'}, inplace = True)
       finaldf = pd.DataFrame(final)
-      finaldf['Predicted Results'] = ""
+      finaldf['Classifications'] = ""
       for i, row in enumerate(df['label']):
           for j, val in enumerate(finaldf['label']):
             if row == val:
-               finaldf['Predicted Results'][j] = df['Predicted Results'][i]
+               finaldf['Classifications'][j] = df['Classifications'][i]
 
       finalresult = finaldf.to_json(orient="values")
       finalparsed = json.loads(finalresult)
@@ -141,7 +141,7 @@ def predicted(request):
        column = list(testdata.columns)
        df = pd.DataFrame(kmeans.cluster_centers_)
        df.columns = column
-       df['Predicted Results'] = ""
+       df['Classifications'] = ""
        df['label'] = "";
        count = Counter(kmeans.labels_)
        countList = [list(i) for i in count.most_common()]
@@ -152,13 +152,13 @@ def predicted(request):
                min = df[col].min()
                df['label'][i] = dfCount[0][i]
                if max == row:
-                   df['Predicted Results'][i] = 'incipient state'
+                   df['Classifications'][i] = 'incipient state'
                    dfCount[0][i] = 'incipient state'
                elif min == row:
-                   df['Predicted Results'][i] = 'normal state'
+                   df['Classifications'][i] = 'normal state'
                    dfCount[0][i] = 'normal state'
                else:
-                   df['Predicted Results'][i] = 'anomaly state'
+                   df['Classifications'][i] = 'anomaly state'
                    dfCount[0][i] = 'anomaly state'
            break
        column = list(df.columns)
@@ -169,11 +169,11 @@ def predicted(request):
        final = pd.merge(predicteddf, testdata, on='id')
        final.rename(columns={0: 'label'}, inplace=True)
        finaldf = pd.DataFrame(final)
-       finaldf['Predicted Results'] = ""
+       finaldf['Classifications'] = ""
        for i, row in enumerate(df['label']):
            for j, val in enumerate(finaldf['label']):
                if row == val:
-                   finaldf['Predicted Results'][j] = df['Predicted Results'][i]
+                   finaldf['Classifications'][j] = df['Classifications'][i]
 
        finalresult = finaldf.to_json(orient="values")
        column = list(finaldf.columns)
