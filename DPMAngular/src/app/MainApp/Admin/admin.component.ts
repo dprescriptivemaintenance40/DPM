@@ -7,6 +7,8 @@ import { Chart } from 'chart.js'
 import { trigger, state, transition, animate, style } from '@angular/animations';
 import * as Highcharts from 'highcharts/highcharts.src';
 import highcharts3D from 'highcharts/highcharts-3d.src';
+import { from } from 'rxjs';
+import { groupBy, mergeMap, toArray } from 'rxjs/internal/operators';
 highcharts3D(Highcharts);
 
 @Component({
@@ -66,165 +68,105 @@ export class AdminComponent {
     public scaleLabelX: string = "";
     public scaleLabelY: string = "";
     public scatterTrainData: any = [];
-    // public scatterTrainData: any = [{
-    //     name: 'Data',
-    //     colorByPoint: true,
-    //     accessibility: {
-    //         exposeAsGroupOnly: true
-    //     },
-    //     data: [
-    //         [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
-    //         [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
-    //         [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
-    //         [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
-    //         [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
-    //         [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
-    //         [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
-    //         [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
-    //         [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
-    //         [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
-    //         [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
-    //         [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
-    //         [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
-    //         [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
-    //         [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
-    //         [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
-    //         [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
-    // }];
-    public scatterTrainChart: any;
+    public scatterTrainChart: any = [{
+        name: 'Data',
+        colorByPoint: true,
+        accessibility: {
+            exposeAsGroupOnly: true
+        },
+        data: [
+            [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
+            [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
+            [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
+            [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
+            [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
+            [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
+            [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
+            [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
+            [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
+            [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
+            [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
+            [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
+            [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
+            [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
+            [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
+            [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
+            [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
+    }];
+    chart;
+    updateFromInput = false;
+
+    chartConstructor = "chart";
+    chartCallback;
+    public showScatter3D: boolean = false;
+    public chartOptions: any;
+    public Series: any = [];
     constructor(public title: Title,
         public http: HttpClient,
         public changeDetectorRef: ChangeDetectorRef,
         public elementRef: ElementRef) {
         this.title.setTitle("Admin | Dynamic Preventative Maintenance")
         this.itemPerPageSelected = this.perPages[0].pageSize;
-        this.scatterTrainChart = {
-            chart: {
-                renderTo: 'container',
-                margin: 100,
-                type: 'scatter3d',
-                animation: false,
-                options3d: {
-                    enabled: true,
-                    alpha: 10,
-                    beta: 30,
-                    depth: 250,
-                    viewDistance: 5,
-                    fitToPlot: false,
-                    frame: {
-                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    }
-                }
-            },
-            title: {
-                text: 'Draggable box'
-            },
-            subtitle: {
-                text: 'Click and drag the plot area to rotate in space'
-            },
-            plotOptions: {
-                scatter: {
-                    width: 10,
-                    height: 10,
-                    depth: 10
-                }
-            },
-            yAxis: {
-                min: 0,
-                max: 10,
-                title: null
-            },
-            xAxis: {
-                min: 0,
-                max: 10,
-                gridLineWidth: 1
-            },
-            zAxis: {
-                min: 0,
-                max: 10,
-                showFirstLabel: false
-            },
-            legend: {
-                enabled: false
-            },
-            // colorByPoint: true,
-            // accessibility: {
-            //     exposeAsGroupOnly: true
-            // },
-            series: [{
-                name: 'Data',
-                colorByPoint: true,
-                accessibility: {
-                    exposeAsGroupOnly: true
-                },
-                data: [
-                    [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
-                    [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
-                    [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
-                    [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
-                    [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
-                    [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
-                    [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
-                    [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
-                    [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
-                    [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
-                    [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
-                    [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
-                    [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
-                    [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
-                    [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
-                    [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
-                    [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
-            }]
+        const self = this;
+        this.chartCallback = chart => {
+            self.chart = chart;
+            self.addChartRotation();
         };
-
     }
-    // (function (H) {
-    //     function dragStart(eStart) {
-    //         eStart = chart.pointer.normalize(eStart);
 
-    //         var posX = eStart.chartX,
-    //             posY = eStart.chartY,
-    //             alpha = chart.options.chart.options3d.alpha,
-    //             beta = chart.options.chart.options3d.beta,
-    //             sensitivity = 5,  // lower is more sensitive
-    //             handlers = [];
+    addChartRotation() {
+        const chart = this.chart;
+        const H = this.hcharts;
 
-    //         function drag(e) {
-    //             // Get e.chartX and e.chartY
-    //             e = chart.pointer.normalize(e);
+        function dragStart(eStart) {
+            eStart = chart.pointer.normalize(eStart);
 
-    //             chart.update({
-    //                 chart: {
-    //                     options3d: {
-    //                         alpha: alpha + (e.chartY - posY) / sensitivity,
-    //                         beta: beta + (posX - e.chartX) / sensitivity
-    //                     }
-    //                 }
-    //             }, undefined, undefined, false);
-    //         }
+            var posX = eStart.chartX,
+                posY = eStart.chartY,
+                alpha = chart.options.chart.options3d.alpha,
+                beta = chart.options.chart.options3d.beta,
+                sensitivity = 5, // lower is more sensitive
+                handlers = [];
 
-    //         function unbindAll() {
-    //             handlers.forEach(function (unbind) {
-    //                 if (unbind) {
-    //                     unbind();
-    //                 }
-    //             });
-    //             handlers.length = 0;
-    //         }
+            function drag(e) {
+                // Get e.chartX and e.chartY
+                e = chart.pointer.normalize(e);
 
-    //         handlers.push(H.addEvent(document, 'mousemove', drag));
-    //         handlers.push(H.addEvent(document, 'touchmove', drag));
+                chart.update(
+                    {
+                        chart: {
+                            options3d: {
+                                alpha: alpha + (e.chartY - posY) / sensitivity,
+                                beta: beta + (posX - e.chartX) / sensitivity
+                            }
+                        }
+                    },
+                    undefined,
+                    undefined,
+                    false
+                );
+            }
 
+            function unbindAll() {
+                handlers.forEach(function (unbind) {
+                    if (unbind) {
+                        unbind();
+                    }
+                });
+                handlers.length = 0;
+            }
 
-    //         handlers.push(H.addEvent(document, 'mouseup', unbindAll));
-    //         handlers.push(H.addEvent(document, 'touchend', unbindAll));
-    //     }
-    //     H.addEvent(chart.container, 'mousedown', dragStart);
-    //     H.addEvent(chart.container, 'touchstart', dragStart);
-    // }(Highcharts));
+            handlers.push(H.addEvent(document, "mousemove", drag));
+            handlers.push(H.addEvent(document, "touchmove", drag));
+
+            handlers.push(H.addEvent(document, "mouseup", unbindAll));
+            handlers.push(H.addEvent(document, "touchend", unbindAll));
+        }
+
+        H.addEvent(chart.container, "mousedown", dragStart);
+        H.addEvent(chart.container, "touchstart", dragStart);
+    }
+
 
     fileChange(event) {
         let fileList: FileList = event.target.files;
@@ -255,6 +197,7 @@ export class AdminComponent {
             this.CentroidColumns = [];
             this.totalRecord = [];
             this.scatterDatasets = [];
+            this.Series = [];
             this.http.post('/Centroids?n_clusters=' + this.nCluster + '&iterate=' + this.maxIterate + '&tolerance=' + this.tolerance + '&random_state=' + this.randomState, formData, { responseType: 'json' })
                 .subscribe((res: any) => {
                     console.log(res);
@@ -301,6 +244,34 @@ export class AdminComponent {
                     });
                     this.totalRecord = res[1];
                     this.scatterData = res[3];
+                    let count = 0;      
+                    this.Series.push(Object.assign({ 'name': 'Centroid' }, { 'data': [] },{'pointStyle':'star'},{'borderWidth':3}))     
+                    res[1].forEach(row => {
+                        this.Series[count].data.push([
+                            row[this.CentroidColumns[0]],
+                            row[this.CentroidColumns[1]],
+                            row[this.CentroidColumns[2]]
+                        ])
+                    });    
+                    count = 1     
+                    const source = from(res[5])
+                        .pipe(
+                            groupBy((a: any) => a.Classifications),
+                            mergeMap(group => group.pipe(toArray())))
+                        .subscribe(val => {
+                            this.Series.push(Object.assign({ 'name': val[0].Classifications }, { 'data': [] },{'borderWidth':3}))
+                            val.forEach(row => {
+                                this.Series[count].data.push([
+                                    row[this.CentroidColumns[0]],
+                                    row[this.CentroidColumns[1]],
+                                    row[this.CentroidColumns[2]]
+                                ])
+
+                            });
+                            count++;
+                        })
+
+
                     this.Loading = false;
                 }, err => {
                     this.Loading = false;
@@ -409,11 +380,11 @@ export class AdminComponent {
                         },
                         scaleLabel: {
                             display: true,
-                            fontColor:'black',
-                            fontSize:30,
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
-                            display:false
+                            display: false
                         }
                     }]
                 }
@@ -433,8 +404,8 @@ export class AdminComponent {
                         scaleLabel: {
                             display: true,
                             labelString: "Cluster Counts",
-                            fontColor:'black',
-                            fontSize:30,
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
                             drawBorder: false,
@@ -444,8 +415,8 @@ export class AdminComponent {
                         scaleLabel: {
                             display: true,
                             labelString: 'Number of Dataset',
-                            fontColor:'black',
-                            fontSize:30,
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
                             drawBorder: false,
@@ -503,44 +474,111 @@ export class AdminComponent {
         });
     }
     showScatterChart() {
-        this.modalChart = true;
-        if (this.myChartData != undefined) {
-            this.myChartData.destroy();
-        }
-        this.changeDetectorRef.detectChanges();
-        this.myChartData = new Chart('myChart', {
-            type: "scatter",
-            options: {
-                scales: {
-                    xAxes: [{
-                        scaleLabel: {
-                            display: true,
-                            labelString: this.scaleLabelX
-                        },
-                        gridLines: {
-                            drawBorder: false,
-                        },
-                    }],
-                    yAxes: [{
-                        scaleLabel: {
-                            display: true,
-                            labelString: this.scaleLabelY
-                        },
-                        gridLines: {
-                            drawBorder: false,
-                        },
-                    }]
+        if (this.CentroidColumns.length == 4) {
+            this.modalChart = true;
+            if (this.myChartData != undefined) {
+                this.myChartData.destroy();
+            }
+            this.changeDetectorRef.detectChanges();
+            this.myChartData = new Chart('myChart', {
+                type: "scatter",
+                options: {
+                    scales: {
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: this.scaleLabelX
+                            },
+                            gridLines: {
+                                drawBorder: false,
+                            },
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: this.scaleLabelY
+                            },
+                            gridLines: {
+                                drawBorder: false,
+                            },
+                        }]
 
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                data: {
+                    labels: this.lineChartLabels,
+                    datasets: this.scatterDatasets
+                }
+            });
+        } else {
+            this.showScatter3D = true;
+
+            this.chartOptions = {
+                chart: {
+                    renderTo: "container",
+                    margin: 100,
+                    type: "scatter3d",
+                    animation: false,
+                    options3d: {
+                        enabled: true,
+                        alpha: 10,
+                        beta: 30,
+                        depth: 250,
+                        viewDistance: 5,
+                        fitToPlot: false,
+                        frame: {
+                            bottom: {
+                                size: 1,
+                                color: "rgba(0,0,0,0.02)"
+                            },
+                            back: {
+                                size: 1,
+                                color: "rgba(0,0,0,0.04)"
+                            },
+                            side: {
+                                size: 1,
+                                color: "rgba(0,0,0,0.06)"
+                            }
+                        }
+                    }
+                },
+                title: {
+                    text: ""
+                },
+                subtitle: {
+                    text: ""
+                },
+                plotOptions: {
+                    scatter: {
+                        width: 10,
+                        height: 10,
+                        depth: 10
+                    }
+                },
+                yAxis: {
+                    title: this.CentroidColumns[1]
+                },
+                xAxis: {
+                    title: this.CentroidColumns[0],
+                    gridLineWidth: 1
+                },
+                zAxis: {
+                    title: this.CentroidColumns[2],
+                    showFirstLabel: false
                 },
                 legend: {
-                    display: false
+                    enabled: true
+                },
+                series: this.Series,
+                credits: {
+                    enabled: false
                 }
-            },
-            data: {
-                labels: this.lineChartLabels,
-                datasets: this.scatterDatasets
-            }
-        });
+
+            };
+        }
     }
     showChart() {
 

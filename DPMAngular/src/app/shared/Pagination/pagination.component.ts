@@ -27,7 +27,7 @@ export class PaginationComponent implements OnChanges {
     ngOnChanges() {
         this.endPage = 0;
         this.totalRecordSize = 0;
-        this.itemPerPageSelected = this.perPages[0].pageSize;
+        this.itemPerPageSelected = this.perPages[1].pageSize;
         this.endPage = parseInt(this.itemPerPageSelected);
         this.totalRecordSize = this.totalRecord.length;
         this.selectedRecord.emit(this.totalRecord.slice(0, this.endPage));

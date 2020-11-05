@@ -5,6 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import * as xlsx from 'xlsx'
 import * as moment from 'moment';
 import { Chart } from 'chart.js'
+import { from } from 'rxjs';
+import { groupBy, mergeMap, toArray } from 'rxjs/internal/operators';
+import * as Highcharts from 'highcharts/highcharts.src';
+import highcharts3D from 'highcharts/highcharts-3d.src';
+highcharts3D(Highcharts);
+
 
 @Component({
     templateUrl: './rule-engine.component.html',
@@ -16,8 +22,8 @@ import { Chart } from 'chart.js'
     ])]
 })
 export class RuleEngineComponent {
-
-    public centroids: any = [];
+    hcharts = Highcharts;
+    public RuleEngineData: any = [];
     public columns: any = [];
     public nCluster: number = 0;
     public maxIterate: number = 0;
@@ -33,7 +39,7 @@ export class RuleEngineComponent {
     public itemPerPageSelected: string = "";
     public perPages: any = [{ pageSize: 5 }, { pageSize: 10 }, { pageSize: 15 }];
     public totalRecord: any = [];
-    public CentroidColumns: any = [];
+    public RuleEngineColumns: any = [];
     public modalChart: boolean = false;
     public ChartData: any;
     public histogramData: any = [];
@@ -58,7 +64,7 @@ export class RuleEngineComponent {
 
     public scaleLabelX: string = "";
     public scaleLabelY: string = "";
-
+    public Series: any = [];
     public scatterTrainData: any = [{
         name: 'Data',
         colorByPoint: true,
@@ -85,140 +91,82 @@ export class RuleEngineComponent {
             [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
     }];
     public scatterTrainChart: any;
+    chart;
+    updateFromInput = false;
+
+    chartConstructor = "chart";
+    chartCallback;
+    public showScatter3D: boolean = false;
+    public chartOptions: any;
+
+
     constructor(public title: Title,
         public http: HttpClient,
         public changeDetectorRef: ChangeDetectorRef) {
         this.title.setTitle("Admin | Dynamic Preventative Maintenance")
-        this.itemPerPageSelected = this.perPages[0].pageSize;
-        this.scatterTrainChart = {
-            chart: {
-                renderTo: 'container',
-                margin: 100,
-                type: 'scatter3d',
-                animation: false,
-                options3d: {
-                    enabled: true,
-                    alpha: 10,
-                    beta: 30,
-                    depth: 250,
-                    viewDistance: 5,
-                    fitToPlot: false,
-                    frame: {
-                        bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
-                        back: { size: 1, color: 'rgba(0,0,0,0.04)' },
-                        side: { size: 1, color: 'rgba(0,0,0,0.06)' }
-                    }
-                }
-            },
-            title: {
-                text: 'Draggable box'
-            },
-            subtitle: {
-                text: 'Click and drag the plot area to rotate in space'
-            },
-            plotOptions: {
-                scatter: {
-                    width: 10,
-                    height: 10,
-                    depth: 10
-                }
-            },
-            yAxis: {
-                min: 0,
-                max: 10,
-                title: null
-            },
-            xAxis: {
-                min: 0,
-                max: 10,
-                gridLineWidth: 1
-            },
-            zAxis: {
-                min: 0,
-                max: 10,
-                showFirstLabel: false
-            },
-            legend: {
-                enabled: false
-            },
-            // colorByPoint: true,
-            // accessibility: {
-            //     exposeAsGroupOnly: true
-            // },
-            series: [{
-                name: 'Data',
-                colorByPoint: true,
-                accessibility: {
-                    exposeAsGroupOnly: true
-                },
-                data: [
-                    [1, 6, 5], [8, 7, 9], [1, 3, 4], [4, 6, 8], [5, 7, 7], [6, 9, 6],
-                    [7, 0, 5], [2, 3, 3], [3, 9, 8], [3, 6, 5], [4, 9, 4], [2, 3, 3],
-                    [6, 9, 9], [0, 7, 0], [7, 7, 9], [7, 2, 9], [0, 6, 2], [4, 6, 7],
-                    [3, 7, 7], [0, 1, 7], [2, 8, 6], [2, 3, 7], [6, 4, 8], [3, 5, 9],
-                    [7, 9, 5], [3, 1, 7], [4, 4, 2], [3, 6, 2], [3, 1, 6], [6, 8, 5],
-                    [6, 6, 7], [4, 1, 1], [7, 2, 7], [7, 7, 0], [8, 8, 9], [9, 4, 1],
-                    [8, 3, 4], [9, 8, 9], [3, 5, 3], [0, 2, 4], [6, 0, 2], [2, 1, 3],
-                    [5, 8, 9], [2, 1, 1], [9, 7, 6], [3, 0, 2], [9, 9, 0], [3, 4, 8],
-                    [2, 6, 1], [8, 9, 2], [7, 6, 5], [6, 3, 1], [9, 3, 1], [8, 9, 3],
-                    [9, 1, 0], [3, 8, 7], [8, 0, 0], [4, 9, 7], [8, 6, 2], [4, 3, 0],
-                    [2, 3, 5], [9, 1, 4], [1, 1, 4], [6, 0, 2], [6, 1, 6], [3, 8, 8],
-                    [8, 8, 7], [5, 5, 0], [3, 9, 6], [5, 4, 3], [6, 8, 3], [0, 1, 5],
-                    [6, 7, 3], [8, 3, 2], [3, 8, 3], [2, 1, 6], [4, 6, 7], [8, 9, 9],
-                    [5, 4, 2], [6, 1, 3], [6, 9, 5], [4, 8, 2], [9, 7, 4], [5, 4, 2],
-                    [9, 6, 1], [2, 7, 3], [4, 5, 4], [6, 8, 1], [3, 4, 0], [2, 2, 6],
-                    [5, 1, 2], [9, 9, 7], [6, 9, 9], [8, 4, 3], [4, 1, 7], [6, 2, 5],
-                    [0, 4, 9], [3, 5, 9], [6, 9, 1], [1, 9, 2]]
-            }]
+        this.itemPerPageSelected = this.perPages[1].pageSize;
+        const self = this;
+        this.chartCallback = chart => {
+            self.chart = chart;
+            self.addChartRotation();
         };
 
+
     }
-    // (function (H) {
-    //     function dragStart(eStart) {
-    //         eStart = chart.pointer.normalize(eStart);
+    addChartRotation() {
+        const chart = this.chart;
+        const H = this.hcharts;
 
-    //         var posX = eStart.chartX,
-    //             posY = eStart.chartY,
-    //             alpha = chart.options.chart.options3d.alpha,
-    //             beta = chart.options.chart.options3d.beta,
-    //             sensitivity = 5,  // lower is more sensitive
-    //             handlers = [];
+        function dragStart(eStart) {
+            eStart = chart.pointer.normalize(eStart);
 
-    //         function drag(e) {
-    //             // Get e.chartX and e.chartY
-    //             e = chart.pointer.normalize(e);
+            var posX = eStart.chartX,
+                posY = eStart.chartY,
+                alpha = chart.options.chart.options3d.alpha,
+                beta = chart.options.chart.options3d.beta,
+                sensitivity = 5, // lower is more sensitive
+                handlers = [];
 
-    //             chart.update({
-    //                 chart: {
-    //                     options3d: {
-    //                         alpha: alpha + (e.chartY - posY) / sensitivity,
-    //                         beta: beta + (posX - e.chartX) / sensitivity
-    //                     }
-    //                 }
-    //             }, undefined, undefined, false);
-    //         }
+            function drag(e) {
+                // Get e.chartX and e.chartY
+                e = chart.pointer.normalize(e);
 
-    //         function unbindAll() {
-    //             handlers.forEach(function (unbind) {
-    //                 if (unbind) {
-    //                     unbind();
-    //                 }
-    //             });
-    //             handlers.length = 0;
-    //         }
+                chart.update(
+                    {
+                        chart: {
+                            options3d: {
+                                alpha: alpha + (e.chartY - posY) / sensitivity,
+                                beta: beta + (posX - e.chartX) / sensitivity
+                            }
+                        }
+                    },
+                    undefined,
+                    undefined,
+                    false
+                );
+            }
 
-    //         handlers.push(H.addEvent(document, 'mousemove', drag));
-    //         handlers.push(H.addEvent(document, 'touchmove', drag));
+            function unbindAll() {
+                handlers.forEach(function (unbind) {
+                    if (unbind) {
+                        unbind();
+                    }
+                });
+                handlers.length = 0;
+            }
 
+            handlers.push(H.addEvent(document, "mousemove", drag));
+            handlers.push(H.addEvent(document, "touchmove", drag));
 
-    //         handlers.push(H.addEvent(document, 'mouseup', unbindAll));
-    //         handlers.push(H.addEvent(document, 'touchend', unbindAll));
-    //     }
-    //     H.addEvent(chart.container, 'mousedown', dragStart);
-    //     H.addEvent(chart.container, 'touchstart', dragStart);
-    // }(Highcharts));
+            handlers.push(H.addEvent(document, "mouseup", unbindAll));
+            handlers.push(H.addEvent(document, "touchend", unbindAll));
+        }
 
-    fileChange(event) {
+        H.addEvent(chart.container, "mousedown", dragStart);
+        H.addEvent(chart.container, "touchstart", dragStart);
+    }
+
+    fileTestChange(event) {
         let fileList: FileList = event.target.files;
         if (fileList.length > 0) {
             this.file = fileList[0];
@@ -227,98 +175,67 @@ export class RuleEngineComponent {
         }
     }
 
-    Submit() {
-        if (this.file != undefined && this.nCluster != 0 && this.maxIterate != 0) {
-            let formData = new FormData();
-            formData.append('uploadFile', this.file);
-            console.log(this.file);
-            let obj = new Object();
-            obj['lastModified'] = this.file.lastModified;
-            obj['name'] = this.file.name;
-            obj['size'] = this.file.size;
-            obj['type'] = this.file.type;
 
-            localStorage.setItem("train_file", JSON.stringify(obj));
-            localStorage.setItem("nCluster", this.nCluster.toString());
-            localStorage.setItem("maxIterate", this.maxIterate.toString());
-            localStorage.setItem("tolerance", this.tolerance.toString());
-            localStorage.setItem("randomState", this.randomState.toString());
+
+    Submit() {
+
+        if (this.file != undefined) {
+            let formData = new FormData();
+            formData.append('ruleEngine', this.file);
             this.Loading = true;
-            this.CentroidColumns = [];
+            this.RuleEngineColumns = [];
             this.totalRecord = [];
-            this.scatterDatasets = [];
-            this.http.post('/Centroids?n_clusters=' + this.nCluster + '&iterate=' + this.maxIterate + '&tolerance=' + this.tolerance + '&random_state=' + this.randomState, formData, { responseType: 'json' })
+            this.Series = [];
+            this.http.post('/RuleEngine', formData, { responseType: 'json' })
                 .subscribe((res: any) => {
-                    console.log(res);
-                    this.CentroidColumns = res[0];
-                    this.scaleLabelX = this.CentroidColumns[0];
-                    this.scaleLabelY = this.CentroidColumns[1];
+                    this.RuleEngineColumns = res[0];
+                    this.totalRecord = res[1];
                     this.histogramData = [];
                     this.labelData = [];
-                    this.scatterClusterData = res[4];
-                    let objScatter = new Object();
-                    objScatter['pointBackgroundColor'] = 'black';
-                    objScatter['pointBorderColor'] = 'black';
-                    objScatter['pointRadius'] = '10';
-                    objScatter['data'] = this.scatterClusterData;
-                    objScatter['pointStyle'] = 'star';
-                    objScatter['borderWidth'] = 3;
-                    this.scatterDatasets.push(objScatter);
-                    let obj1 = new Object();
-                    obj1['name'] = 'Clusters';
-                    obj1['data'] = this.scatterClusterData;
-                    this.scatterTrainData.push(obj1)
-                    res[2].forEach((i, index) => {
-                        let data = [];
-                        res[3].forEach(j => {
-                            if (j.label == i.name) {
-                                data.push(j);
-                            }
-                        });
-                        let objScatter = new Object();
-                        objScatter['pointBackgroundColor'] = this.backgroundColor[index];
-                        objScatter['pointBorderColor'] = this.backgroundColor[index];
-                        objScatter['pointRadius'] = '10';
-                        objScatter['data'] = data;
-                        this.scatterDatasets.push(objScatter);
-                        let obj1 = new Object();
-                        obj1['name'] = i.name;
-                        obj1['data'] = data;
-                        this.scatterTrainData.push(obj1)
-                    });
-                    res[2].forEach(a => {
-                        this.histogramData.push(a.value)
-                        this.labelData.push(a.name)
+                    let count = 0;
+                    const source = from(res[1])
+                        .pipe(
+                            groupBy((a: any) => a.Classifications),
+                            mergeMap(group => group.pipe(toArray())))
+                        .subscribe(val => {
+                            this.histogramData.push(val.length);
+                            this.labelData.push(val[0].Classifications);
+                            this.Series.push(Object.assign({ 'name': val[0].Classifications }, { 'data': [] }))
+                            val.forEach(row => {
+                                this.Series[count].data.push([
+                                    row[this.RuleEngineColumns[0]],
+                                    row[this.RuleEngineColumns[1]],
+                                    row[this.RuleEngineColumns[2]]
+                                ])
 
-                    });
-                    this.totalRecord = res[1];
-                    this.scatterData = res[3];
+                            });
+                            count++;
+                        })
+
                     this.Loading = false;
-                }, err => {
-                    this.Loading = false;
-                    console.log(err.error.text);
-                    // alert(err.error.text);
+
                 })
         } else {
-            alert("Kindly Select Cluster, Iterate and File");
+            alert("Kindly select Rule Engine File.");
         }
+
     }
     AdminSelectRecords(event) {
-        this.centroids = event;
+        this.RuleEngineData = event;
         this.changeDetectorRef.detectChanges();
     }
     exportCSV() {
-        if (this.centroids.length > 0) {
+        if (this.RuleEngineData.length > 0) {
             var content = '';
             content +=
                 '<tr>'
-            this.CentroidColumns.forEach(header => {
+            this.RuleEngineColumns.forEach(header => {
                 content += '<th style="font-weight:bold;">' + header + '</th>'
             });
             content += '</tr>';
             this.totalRecord.forEach(data => {
                 content += '<tr>'
-                this.CentroidColumns.forEach(col => {
+                this.RuleEngineColumns.forEach(col => {
                     content += '<td>' + data[col] + '</td>'
                 });
                 content += '</tr>'
@@ -328,15 +245,7 @@ export class RuleEngineComponent {
             s.innerHTML = content;
 
             const ws: xlsx.WorkSheet = xlsx.utils.table_to_sheet(s);
-            // ws.eachCell((cell, number) => {
-            //     cell.fill = {
-            //       type: 'pattern',
-            //       pattern: 'solid',
-            //       fgColor: { argb: 'FFFFFF00' },
-            //       bgColor: { argb: 'FF0000FF' }
-            //     }
-            //     cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
-            //   })
+
             const wb: xlsx.WorkBook = xlsx.utils.book_new();
 
             xlsx.utils.book_append_sheet(wb, ws, 'Train_Data');
@@ -401,11 +310,11 @@ export class RuleEngineComponent {
                         },
                         scaleLabel: {
                             display: true,
-                            fontColor:'black',
-                            fontSize:30,
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
-                            display:false
+                            display: false
                         }
                     }]
                 }
@@ -424,9 +333,9 @@ export class RuleEngineComponent {
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: "Cluster Counts",
-                            fontColor:'black',
-                            fontSize:30,
+                            labelString: "Classifications",
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
                             drawBorder: false,
@@ -435,9 +344,9 @@ export class RuleEngineComponent {
                     yAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'Number of Dataset',
-                            fontColor:'black',
-                            fontSize:30,
+                            labelString: 'Number of Test Dataset',
+                            fontColor: 'black',
+                            fontSize: 30,
                         },
                         gridLines: {
                             drawBorder: false,
@@ -457,7 +366,7 @@ export class RuleEngineComponent {
                 labels: this.labelData,
                 // datasets: this.histogramData
                 datasets: [{
-                    label: 'Train Data ',
+                    label: 'Test Dataset ',
                     data: this.histogramData,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
@@ -495,44 +404,123 @@ export class RuleEngineComponent {
         });
     }
     showScatterChart() {
-        this.modalChart = true;
-        if (this.myChartData != undefined) {
-            this.myChartData.destroy();
-        }
-        this.changeDetectorRef.detectChanges();
-        this.myChartData = new Chart('myChart', {
-            type: "scatter",
-            options: {
-                scales: {
-                    xAxes: [{
-                        scaleLabel: {
-                            display: true,
-                            labelString: this.scaleLabelX
-                        },
-                        gridLines: {
-                            drawBorder: false,
-                        },
-                    }],
-                    yAxes: [{
-                        scaleLabel: {
-                            display: true,
-                            labelString: this.scaleLabelY
-                        },
-                        gridLines: {
-                            drawBorder: false,
-                        },
-                    }]
 
-                },
-                legend: {
-                    display: false
+        this.showScatter3D = true;
+
+        this.chartOptions = {
+            chart: {
+                renderTo: "container",
+                margin: 100,
+                type: "scatter3d",
+                animation: false,
+                options3d: {
+                    enabled: true,
+                    alpha: 10,
+                    beta: 30,
+                    depth: 250,
+                    viewDistance: 5,
+                    fitToPlot: false,
+                    frame: {
+                        bottom: {
+                            size: 1,
+                            color: "rgba(0,0,0,0.02)"
+                        },
+                        back: {
+                            size: 1,
+                            color: "rgba(0,0,0,0.04)"
+                        },
+                        side: {
+                            size: 1,
+                            color: "rgba(0,0,0,0.06)"
+                        }
+                    }
                 }
             },
-            data: {
-                labels: this.lineChartLabels,
-                datasets: this.scatterDatasets
-            }
-        });
+            title: {
+                text: ""
+            },
+            subtitle: {
+                text: ""
+            },
+            plotOptions: {
+                scatter: {
+                    width: 10,
+                    height: 10,
+                    depth: 10
+                }
+            },
+            yAxis: {
+                title: this.RuleEngineColumns[1]
+            },
+            xAxis: {
+                title: this.RuleEngineColumns[0],
+                gridLineWidth: 1
+            },
+            zAxis: {
+                title: this.RuleEngineColumns[2],
+                showFirstLabel: false
+            },
+            legend: {
+                enabled: true
+            },
+            series: this.Series,
+            credits: {
+                enabled: false
+            },
+            //  [
+            //     {
+            //         name: 'Normal State',
+            //         data: [
+            //             [162.31, 260, 207.5], [147.15, 260, 210], [147.18, 230, 195], [159.43, 220, 205],
+            //             [150.77, 230, 212.5], [157.11, 230, 212.5],
+            //             [156.04, 230, 207.5], [156.46, 230, 210]]
+            //     },
+            //     {
+            //         name: 'Watch',
+            //         data: [
+            //             [164.22, 270, 212.5], [169, 230, 209], [165.7, 280, 212]]
+            //     },
+            //     {
+            //         name: 'Abnormal State',
+            //         data: [
+            //             [167.33, 270, 205], [173.55, 280, 207.5], [168.2, 290, 207.5],
+            //             [180.24, 290, 210], [165.4, 280.4, 209]]
+            //     }
+            // ]
+        };
+        // this.myChartData = new Chart('myChart', {
+        //     type: "scatter",
+        //     options: {
+        //         scales: {
+        //             xAxes: [{
+        //                 scaleLabel: {
+        //                     display: true,
+        //                     labelString: this.scaleLabelX
+        //                 },
+        //                 gridLines: {
+        //                     drawBorder: false,
+        //                 },
+        //             }],
+        //             yAxes: [{
+        //                 scaleLabel: {
+        //                     display: true,
+        //                     labelString: this.scaleLabelY
+        //                 },
+        //                 gridLines: {
+        //                     drawBorder: false,
+        //                 },
+        //             }]
+
+        //         },
+        //         legend: {
+        //             display: false
+        //         }
+        //     },
+        //     data: {
+        //         labels: this.lineChartLabels,
+        //         datasets: this.scatterDatasets
+        //     }
+        // });
     }
     showChart() {
 

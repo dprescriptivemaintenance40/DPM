@@ -56,7 +56,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div style="float: left;">
-            <h3><span style="color: red;font-size: 2.5em;">*</span><span>Rule Engine With Data</span> </h3>
+            <h3><span style="color: red;font-size: 2.5em;">*</span><span>Rule Engine Data</span> </h3>
         </div>
         <div style="float: right;">
             <button class="bttn-custom" title="Export CSV" (click)="exportCSV()" style="font-size: 3em;color: green;"><i class="fa fa-file-excel-o"></i></button>
@@ -65,61 +65,45 @@
 </div>
 <hr>
 <div class="row col-md-12">
-    <div class="col-md-2">
-        <label>Cluster</label>
-        <input type="number" title="Number of Cluster" class="form-control" [(ngModel)]="nCluster">
-    </div>
-    <div class="col-md-2">
-        <label>Iteration</label>
-        <input type="number" title="Number of Iteration" class="form-control" [(ngModel)]="maxIterate">
-    </div>
-    <div class="col-md-2">
-        <label>State</label>
-        <input type="number" title="Number of Iteration" class="form-control" [(ngModel)]="randomState">
-    </div>
-    <div class="col-md-2">
-        <label>Tolerance</label>
-        <input type="number" title="Number of Tolerance" class="form-control" [(ngModel)]="tolerance">
-    </div>
-    <div class="col-md-3" style="position: relative;top: 1.44em;">
+    <div class="col-md-6">
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
             </div>
             <div class="custom-file">
-                <input type="file" (change)="fileChange($event)" class="custom-file-input" accept=".csv" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-                <label class="custom-file-label" *ngIf="fileName == ''" for="inputGroupFile01">Choose Train File</label>
+                <input type="file" (change)="fileTestChange($event)" class="custom-file-input" accept=".csv" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                <label class="custom-file-label" *ngIf="fileName == ''" for="inputGroupFile01">Choose Test File</label>
                 <label class="custom-file-label" *ngIf="fileName != ''" for="inputGroupFile01">{{fileName}}</label>
             </div>
         </div>
     </div>
-    <div class="col-md-1" style="position: relative;top: 1.44em;">
+    <div class="col-md-1">
         <button type="submit" class="btn btn-success" (click)="Submit()">Submit</button>
     </div>
 </div>
 
 <div class="col-md-12" style="margin: 1em 0 1em 0;"></div>
 <div class="col-md-12" align="center" *ngIf="totalRecord.length>0">
-    <h2>BELOW IS YOUR TRAINED CLUSTER WITH RULE ENGINE.</h2><br>
-    <h4><a [routerLink]="['/MainApp/User']">DO YOU WANT TO GET PREDICTED DATA FROM TEST FILE?</a></h4>
+    <h2>BELOW IS YOUR PREDICTED DATA</h2>
+    <!-- <h4><a [routerLink]="['/MainApp/User']">DO YOU WANT TO GET PREDICTED DATA FROM TEST FILE?</a></h4> -->
 </div>
 <div class="row" *ngIf="totalRecord.length>0">
     <div class="col-lg-12">
         <div style="float: right;margin: 1em; ">
-            <button class="btn btn-primary" title="Line Chart" (click)="showLineChart()">Line</button>&nbsp;
+            <!-- <button class="btn btn-primary" title="Line Chart" (click)="showLineChart()">Line</button>&nbsp; -->
             <button class="btn btn-primary" title="Bar Chart" (click)="showBarChart()">Bar</button>&nbsp;
-            <button *ngIf="CentroidColumns.length == 4" class="btn btn-primary" title="Scatter Chart" (click)="showScatterChart()">Scatter</button>&nbsp;
+            <button *ngIf="RuleEngineColumns.length == 4" class="btn btn-primary" title="Scatter Chart" (click)="showScatterChart()">Scatter</button>&nbsp;
         </div>
     </div>
 </div>
 <div class="col-md-12" *ngIf="totalRecord.length>0">
     <table class="table table-striped">
         <thead class="thead-dark">
-            <th *ngFor="let col of CentroidColumns"><span *ngIf="col != 'label'">{{col}}</span></th>
+            <th *ngFor="let col of RuleEngineColumns">{{col}}</th>
         </thead>
         <tbody>
-            <tr *ngFor="let colObj of centroids">
-                <td *ngFor="let col of CentroidColumns"><span *ngIf="col != 'label'">{{colObj[col]}}</span></td>
+            <tr *ngFor="let colObj of RuleEngineData">
+                <td *ngFor="let col of RuleEngineColumns">{{colObj[col]}}</td>
             </tr>
         </tbody>
         <tfoot class="tbl_pagination">
@@ -137,7 +121,7 @@
     <div class="modal-dialog col-md-10">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Train Data</h5>
+                <h5 class="modal-title">Bar Chart</h5>
                 <button type="button" class="close" (click)="modalChart = false">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -145,6 +129,25 @@
             <div class="modal-body">
                 <div class="col-md-12" style="width:100%;">
                     <canvas id="myChart" width="700" height="250" #mychart></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" @fade *ngIf="showScatter3D">
+    <div class="modal-dialog col-md-10">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scatter Graph</h5>
+                <button type="button" class="close" (click)="showScatter3D = false">
+            <span aria-hidden="true">&times;</span>
+          </button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="width:100%;">
+                    <highcharts-chart id="container" [Highcharts]="hcharts" [options]="chartOptions" [constructorType]="chartConstructor" [callbackFunction]="chartCallback" [(update)]="updateFromInput" [oneToOne]="true" style="height: 500px; display: block;">
+
+                    </highcharts-chart>
                 </div>
             </div>
         </div>

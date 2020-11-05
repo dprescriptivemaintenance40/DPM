@@ -8,8 +8,13 @@ import {FormsModule} from '@angular/forms';
 import {SharedModule} from '../shared/shared.module'
 import { HighchartsChartModule } from 'highcharts-angular';
 import {RuleEngineComponent} from './RuleEngine/rule-engine.component'
+import {WeibullAnalysis} from './WeibullAnalysis/weibull-analysis.component'
+import { from } from 'rxjs';
 @NgModule({
-    declarations:[AdminComponent,UserComponent,MainAppComponent,RuleEngineComponent],
+    declarations:[AdminComponent,UserComponent,
+        MainAppComponent,RuleEngineComponent,
+        WeibullAnalysis
+    ],
     imports:[
         CommonModule,
         MainAppRoutingModule,

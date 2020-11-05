@@ -1,0 +1,145 @@
+<div *ngIf="Loading" class="col-md-12" align="center" style="position: absolute;top: 10em;z-index: 10000;">
+    <div class="dot-pulse">
+
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div style="float: left;">
+            <h3><span style="color: red;font-size: 2.5em;">*</span> <span>Upload Days File</span></h3>
+        </div>
+        <div style="float: right;">
+            <button class="bttn-custom" title="Export CSV" (click)="exportCSV('days')" style="font-size: 3em;color: green;"><i class="fa fa-file-excel-o"></i></button>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="row col-md-12">
+    <div class="col-md-6">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+            </div>
+            <div class="custom-file">
+                <input type="file" (change)="fileTestChange($event)" class="custom-file-input" accept=".csv" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+                <label class="custom-file-label" *ngIf="fileName == ''" for="inputGroupFile01">Choose Days File</label>
+                <label class="custom-file-label" *ngIf="fileName != ''" for="inputGroupFile01">{{fileName}}</label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1">
+        <button type="submit" class="btn btn-success" (click)="Submit()">Submit</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9" *ngIf="totalRecordMTF.length>0">
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <th *ngFor="let col of MeanTimeFailureColumn">
+                    {{col}}
+                </th>
+            </thead>
+            <tbody>
+                <tr *ngFor="let colObj of MeanTimeFailureData">
+                    <td *ngFor="let col of MeanTimeFailureColumn">
+                        {{colObj[col]}}
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot class="tbl_pagination">
+                <tr>
+                    <td colspan="10">
+                        <pagination [perPages]="[{pageSize:5},{pageSize:10},{pageSize:15}]" [totalRecord]="totalRecordMTF" [align]="'right'" (selectedRecord)="MTFSelectedRecords($event)"></pagination>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+    </div>
+    <div class="col-md-3" *ngIf="QuickCalculation.length >0">
+        <table class="table table-striped">
+            <tbody>
+                <tr>
+                    Beta :
+                    <td>{{QuickCalculation[0].Beta}}</td>
+                </tr>
+                <tr>
+                    Alpha :
+                    <td>{{QuickCalculation[0].Alpha}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<hr>
+<div class="row" *ngIf="totalRecordWeibull.length>0">
+    <div class="col-md-12">
+        <div style="float: left;">
+            <h3> <span style="color: red;font-size: 2.5em;">*</span><span>Weibull Analysis</span></h3>
+        </div>
+        <div style="float: right;">
+            <button class="bttn-custom" title="Show Charts" (click)="ShowCharts()" style="font-size: 3em;color: red; margin-right: 12px;"><i class="fa fa-line-chart"></i></button>
+            <button class="bttn-custom" title="Export CSV" (click)="exportCSV('weibull')" style="font-size: 3em;color: green;"><i class="fa fa-file-excel-o"></i></button>
+        </div>
+    </div>
+</div>
+
+
+<div class="col-md-12" *ngIf="totalRecordWeibull.length>0">
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <th *ngFor="let col of WeibullColumn">
+                {{col}}
+            </th>
+        </thead>
+        <tbody>
+            <tr *ngFor="let colObj of WeibullData">
+                <td *ngFor="let col of WeibullColumn">
+                    {{colObj[col]}}
+                </td>
+            </tr>
+        </tbody>
+        <tfoot class="tbl_pagination">
+            <tr>
+                <td colspan="10">
+                    <pagination [perPages]="[{pageSize:5},{pageSize:10},{pageSize:15}]" [totalRecord]="totalRecordWeibull" [align]="'right'" (selectedRecord)="WeibullSelectedRecords($event)"></pagination>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="modal" @fade *ngIf="showLineCharts">
+    <div class="modal-dialog col-md-10 modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Line Charts</h5>
+                <button type="button" class="close" (click)="showLineCharts = false">
+            <span aria-hidden="true">&times;</span>
+          </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6" style="width:100%;">
+                        <canvas id="chart1" width="700" height="250"></canvas>
+                    </div>
+                    <div class="col-md-6" style="width:100%;">
+                        <canvas id="chart2" width="700" height="250"></canvas>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6" style="width:100%;">
+                        <canvas id="chart3" width="700" height="250"></canvas>
+                    </div>
+
+
+                    <div class="col-md-6" style="width:100%;">
+                        <canvas id="chart4" width="700" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
