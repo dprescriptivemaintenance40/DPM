@@ -348,7 +348,7 @@ def forecast(request):
             slope, intercept, r_value, p_value, std_err = linregress(log_time_period, log_cum_fail)
             allBetaVal = slope
             allAlphaVal = math.exp(-intercept / slope)
-
+            allRSquareVal = math.pow(r_value, 2)
             first_half_log_time_period = list()
             first_half_log_cum_fail = list()
             for i in range(0, (int(totrow / 2))):
@@ -361,6 +361,7 @@ def forecast(request):
                                                                      first_half_log_cum_fail)
             first_halfBetaVal = slope
             first_halfAlphaVal = math.exp(-intercept / slope)
+            first_halfRSquareVal = math.pow(r_value, 2)
 
             second_half_log_time_period = list()
             second_half_log_cum_fail = list()
@@ -374,6 +375,7 @@ def forecast(request):
                                                                      second_half_log_cum_fail)
             second_halfBetaVal = slope
             second_halfAlphaVal = math.exp(-intercept / slope)
+            second_halfRSquareVal = math.pow(r_value, 2)
 
             third_half_log_time_period = list()
             third_half_log_cum_fail = list()
@@ -387,7 +389,7 @@ def forecast(request):
                                                                      third_half_log_cum_fail)
             third_halfBetaVal = slope
             third_halfAlphaVal = math.exp(-intercept / slope)
-
+            third_halfRSquareVal = math.pow(r_value, 2)
 
             predictDF = pd.DataFrame(
                 columns=['Years', 'Cummulative Time Period',  'All Beta Cal', 'First Half Beta Cal', 'Second Half Beta Cal',
@@ -412,10 +414,10 @@ def forecast(request):
             json_data.append(predictDFdata)
 
             quickCalData = []
-            quickCalData.append({"AllBeta": round(allBetaVal,2), "AllAlpha": round(allAlphaVal, 2)})
-            quickCalData.append({"FirstBeta": round(first_halfBetaVal, 2), "FirstAlpha": round(first_halfAlphaVal, 2)})
-            quickCalData.append({"SecondBeta": round(second_halfBetaVal, 2), "SecondAlpha": round(second_halfAlphaVal, 2)})
-            quickCalData.append({"ThirdBeta": round(third_halfBetaVal, 2), "ThirdAlpha": round(third_halfAlphaVal, 2)})
+            quickCalData.append({"AllBeta": round(allBetaVal, 2), "AllAlpha": round(allAlphaVal, 2), "AllRSquare": round(allRSquareVal, 2)})
+            quickCalData.append({"FirstBeta": round(first_halfBetaVal, 2), "FirstAlpha": round(first_halfAlphaVal, 2), "FirstRSquare": round(first_halfRSquareVal, 2)})
+            quickCalData.append({"SecondBeta": round(second_halfBetaVal, 2), "SecondAlpha": round(second_halfAlphaVal, 2), "SecondRSquare": round(second_halfRSquareVal, 2)})
+            quickCalData.append({"ThirdBeta": round(third_halfBetaVal, 2), "ThirdAlpha": round(third_halfAlphaVal, 2), "ThirdRSquare": round(third_halfRSquareVal, 2)})
 
             json_data.append(quickCalData)
 
