@@ -329,10 +329,10 @@ def forecast(request):
             for i, fail in enumerate(cumYeartol[column[1]]):
                 log_cum_fail.append(round(math.log(fail), 2))
             cumYeartol["Log Of Cummulative Failure"] = log_cum_fail
-            cumYeartol['temp'] = cumYeartol["Cummulative Time Period"]
-            cumYeartol["Cummulative Time Period"] = cumYeartol[column[1]]
-            cumYeartol[column[1]] = cumYeartol['temp']
-            cumYeartol.drop(columns=['temp'], inplace=True)
+            # cumYeartol['temp'] = cumYeartol["Cummulative Time Period"]
+            # cumYeartol["Cummulative Time Period"] = cumYeartol[column[1]]
+            # cumYeartol[column[1]] = cumYeartol['temp']
+            # cumYeartol.drop(columns=['temp'], inplace=True)
 
             cumYeartolColumn = list(cumYeartol.columns)
 
@@ -392,8 +392,8 @@ def forecast(request):
             predictDF = pd.DataFrame(
                 columns=['Years', 'Cummulative Time Period',  'All Beta Cal', 'First Half Beta Cal', 'Second Half Beta Cal',
                          'Third Half Beta Cal'])
-            yearVal = cumYeartol[column[0]][totrow - 1]
-            timeVal = cumYeartol[column[1]][totrow - 1]
+            yearVal = cumYeartol[cumYeartolColumn[0]][totrow - 1]
+            timeVal = cumYeartol[cumYeartolColumn[2]][totrow - 1]
             for i in range(totrow - 1, totrow + 4):
                 yearVal = yearVal + 1
                 timeVal = timeVal + 360
