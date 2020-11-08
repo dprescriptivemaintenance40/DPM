@@ -237,15 +237,16 @@ def weibullAnalysis(request):
         if request.method == 'POST':
             daysFile = request.FILES['daysFile']
             daysDF = pd.read_csv(daysFile, delimiter=',').replace(np.nan, 0)
-            numbers = list(daysDF["Days"])
+            col = list(daysDF.columns)
+            numbers = list(daysDF[col[0]])
             sortedNum = sorted(numbers)
-            daysDF["Days"] = sortedNum
+            daysDF[col[0]] = sortedNum
             rank = list()
             median = list()
             logx = list()
             logxInverse = list()
             logxOflogx = list()
-            for i, day in enumerate(daysDF["Days"]):
+            for i, day in enumerate(daysDF[col[0]]):
                 rank.append(i + 1)
                 median.append(((i + 1) - 0.3) / (19 + 0.4))
                 logx.append(math.log(day))
@@ -268,7 +269,7 @@ def weibullAnalysis(request):
             cdf = list()
             weibullLogx = list()
             weibullLogxOfLogx = list()
-            for i, day in enumerate(weibullData["Days"]):
+            for i, day in enumerate(weibullData[col[0]]):
                 pdfval = (Beta / Alpha) * math.pow((day / Alpha), (Beta - 1)) * math.exp(
                     -(math.pow((day / Alpha), Beta)))
                 hazardval = (Beta / Alpha) * math.pow((day / Alpha), (Beta - 1))
