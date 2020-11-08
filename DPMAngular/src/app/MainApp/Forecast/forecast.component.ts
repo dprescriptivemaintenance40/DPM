@@ -1,4 +1,3 @@
-
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from "@angular/core";
 import { Title } from '@angular/platform-browser';
@@ -8,7 +7,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { Chart } from 'chart.js'
 
 @Component({
-    templateUrl: './weibull-analysis.component.html',
+    templateUrl: './forecast.component.html',
     animations: [trigger('fade', [
         state('void', style({ opacity: 0 })),
         transition(':enter,:leave', [
@@ -16,90 +15,49 @@ import { Chart } from 'chart.js'
         ])
     ])]
 })
-export class WeibullAnalysis {
+
+export class ForecastComponent {
     public fileName: string = "";
     public Loading: boolean = false;
-    public daysFile: any;
-    public MeanTimeFailureColumn: any = [];
-    public MeanTimeFailureData: any = [];
-    public totalRecordMTF: any = [];
-    public WeibullColumn: any = [];
-    public WeibullData: any = [];
-    public totalRecordWeibull: any = [];
+    public totalRecordCTF: any = [];
+    public CTFColumns: any = [];
+    public CTFData: any = [];
+    public totalRecordForecast: any = [];
+    public ForecastColumns: any = [];
+    public ForecastData: any = [];
+    public cumYeartolFile: any;
     public QuickCalculation: any = [];
     public showLineCharts: boolean = false;
     public Chart1: any;
-    public LineChart1: any = [];
     public Chart2: any;
-    public LineChart2: any = [];
     public Chart3: any;
-    public LineChart3: any = [];
     public Chart4: any;
-    public LineChart4: any = [];
-    public lineChartLabels: any = [1,
-        5,
-        10,
-        15,
-        25,
-        50,
-        75,
-        100,
-        125,
-        150,
-        175,
-        200,
-        225,
-        250,
-        275,
-        300,
-        325,
-        350,
-        375,
-        400,
-        425,
-        450,
-        475,
-        500,
-        525,
-        550,
-        575,
-        600,
-        625,
-        650,
-        675,
-        700,
-        725,
-        750,
-        775,
-        800,
-        825,
-        850,
-        875,
-        900,
-        925,
-        950,
-        975,
-        1000,
-        1800]
-
+    public LineChartsData: any = [];
     constructor(public title: Title, public http: HttpClient,
         public changeDetectorRef: ChangeDetectorRef) {
         this.title.setTitle("Weibull Analysis | Dynamic Preventative Maintenance");
     }
-
+    CTFSelectedRecords(event) {
+        this.CTFData = event;
+        this.changeDetectorRef.detectChanges();
+    }
+    ForecastSelectedRecords(event) {
+        this.ForecastData = event;
+        this.changeDetectorRef.detectChanges();
+    }
     exportCSV(type) {
-        if (type == 'days') {
-            if (this.totalRecordMTF.length > 0) {
+        if (type == 'CTF') {
+            if (this.totalRecordCTF.length > 0) {
                 var content = '';
                 content +=
                     '<tr>'
-                this.MeanTimeFailureColumn.forEach(header => {
+                this.CTFColumns.forEach(header => {
                     content += '<th>' + header + '</th>'
                 });
                 content += '</tr>';
-                this.totalRecordMTF.forEach(data => {
+                this.totalRecordCTF.forEach(data => {
                     content += '<tr>'
-                    this.MeanTimeFailureColumn.forEach(col => {
+                    this.CTFColumns.forEach(col => {
                         content += '<td>' + data[col] + '</td>'
                     });
                     content += '</tr>'
@@ -112,23 +70,23 @@ export class WeibullAnalysis {
                 const wb: xlsx.WorkBook = xlsx.utils.book_new();
 
                 xlsx.utils.book_append_sheet(wb, ws, 'Mean_time_failure');
-                xlsx.writeFile(wb, 'Mean_time_failure' + moment().format('DD-MMM-YYYY') + '.csv');
+                xlsx.writeFile(wb, 'Cummulative_Time_Failure' + moment().format('DD-MMM-YYYY') + '.csv');
 
             } else {
-                alert("you haven't selected the Days file.")
+                alert("you haven't selected the Cummulative Year Total file.")
             }
         } else {
-            if (this.totalRecordWeibull.length > 0) {
+            if (this.totalRecordForecast.length > 0) {
                 var content = '';
                 content +=
                     '<tr>'
-                this.WeibullColumn.forEach(header => {
+                this.ForecastColumns.forEach(header => {
                     content += '<th>' + header + '</th>'
                 });
                 content += '</tr>';
-                this.totalRecordWeibull.forEach(data => {
+                this.totalRecordForecast.forEach(data => {
                     content += '<tr>'
-                    this.WeibullColumn.forEach(col => {
+                    this.ForecastColumns.forEach(col => {
                         content += '<td>' + data[col] + '</td>'
                     });
                     content += '</tr>'
@@ -141,10 +99,10 @@ export class WeibullAnalysis {
                 const wb: xlsx.WorkBook = xlsx.utils.book_new();
 
                 xlsx.utils.book_append_sheet(wb, ws, 'Weibull_Analysis');
-                xlsx.writeFile(wb, 'Weibull_Analysis' + moment().format('DD-MMM-YYYY') + '.csv');
+                xlsx.writeFile(wb, 'Forecast' + moment().format('DD-MMM-YYYY') + '.csv');
 
             } else {
-                alert("you haven't selected the Days file.")
+                alert("you haven't selected the Cummulative Year Total file.")
             }
         }
     }
@@ -152,88 +110,31 @@ export class WeibullAnalysis {
     fileTestChange(event) {
         let fileList: FileList = event.target.files;
         if (fileList.length > 0) {
-            this.daysFile = fileList[0];
-            this.fileName = this.daysFile.name;
+            this.cumYeartolFile = fileList[0];
+            this.fileName = this.cumYeartolFile.name;
         }
     }
     Submit() {
-        if (this.daysFile != undefined) {
+        if (this.cumYeartolFile != undefined) {
             let formData = new FormData();
-            console.log(JSON.stringify(this.daysFile));
-            formData.append('daysFile', this.daysFile);
-            this.Loading = true;
-            this.LineChart1 = [];
-            this.LineChart2 = [];
-            this.LineChart3 = [];
-            this.LineChart4 = [];
-
-            this.http.post('/WeibullAnalysis', formData, { responseType: 'json' })
+            console.log(JSON.stringify(this.cumYeartolFile));
+            formData.append('cumYeartol', this.cumYeartolFile);
+            this.http.post('/Forecast', formData, { responseType: 'json' })
                 .subscribe((res: any) => {
-                    this.MeanTimeFailureColumn = res[0];
-                    this.totalRecordMTF = res[1];
-                    this.WeibullColumn = res[2];
-                    this.totalRecordWeibull = res[3];
-                    var objLine1LN = new Object();
-                    objLine1LN["label"] = "LN(Days)";
-                    objLine1LN["data"] = [];
-                    objLine1LN["backgroundColor"] = '#33FFFA';
-                    objLine1LN["fill"] = false;
-                    var objLine1LNLN = new Object();
-                    objLine1LNLN["label"] = "LN(LN(1/R(T)))";
-                    objLine1LNLN["data"] = [];
-                    objLine1LNLN["backgroundColor"] = '#33FFFA';
-                    objLine1LNLN["fill"] = false;
-                    var objLine2Hazard = new Object();
-                    objLine2Hazard["label"] = "HazardRate";
-                    objLine2Hazard["data"] = [];
-                    objLine2Hazard["backgroundColor"] = '#33FFFA';
-                    objLine2Hazard["fill"] = false;
-                    var objLine3CDF = new Object();
-                    objLine3CDF["label"] = "CDF";
-                    objLine3CDF["data"] = [];
-                    objLine3CDF["backgroundColor"] = '#714F06';
-                    objLine3CDF["fill"] = false;
-                    var objLine3Reliability = new Object();
-                    objLine3Reliability["label"] = "Reliability";
-                    objLine3Reliability["data"] = [];
-                    objLine3Reliability["backgroundColor"] = '#33FFFA';
-                    objLine3Reliability["fill"] = false;
-                    var objLine4PDF = new Object();
-                    objLine4PDF["label"] = "PDF";
-                    objLine4PDF["data"] = [];
-                    objLine4PDF["backgroundColor"] = '#33FFFA';
-                    objLine4PDF["fill"] = false;
-                    res[3].forEach((row, index) => {
-                        objLine1LN["data"].push(row["LN(Days)"]);
-                        objLine1LNLN["data"].push(row["LN(LN(1/R(T)))"]);
-                        objLine2Hazard["data"].push(row["HazardRate"]);
-                        objLine3CDF["data"].push(row["CDF"]);
-                        objLine3Reliability["data"].push(row["Reliability"]);
-                        objLine4PDF["data"].push(row["PDF"]);
-                    });
-                    this.LineChart1.push(objLine1LN);
-                    this.LineChart1.push(objLine1LNLN);
-                    this.LineChart2.push(objLine2Hazard);
-                    this.LineChart3.push(objLine3CDF);
-                    this.LineChart3.push(objLine3Reliability);
-                    this.LineChart4.push(objLine4PDF);
+                    console.log(res);
+                    this.CTFColumns = res[0];
+                    this.totalRecordCTF = res[1];
+                    this.ForecastColumns = res[2];
+                    this.totalRecordForecast = res[3];
                     this.QuickCalculation = res[4];
+                    this.LineChartsData = res[5]
                     this.Loading = false;
                 }, err => {
                     this.Loading = false;
                 })
         } else {
-            alert("you haven't selected the Days file.")
+            alert("you haven't selected the Cummulative Year Total file.")
         }
-    }
-
-    MTFSelectedRecords(event) {
-        this.MeanTimeFailureData = event;
-        this.changeDetectorRef.detectChanges();
-    }
-    WeibullSelectedRecords(event) {
-        this.WeibullData = event;
-        this.changeDetectorRef.detectChanges();
     }
 
 
@@ -250,8 +151,13 @@ export class WeibullAnalysis {
         this.Chart1 = new Chart('chart1', {
             type: 'line',
             data: {
-                labels: this.lineChartLabels,
-                datasets: this.LineChart1,
+                labels: this.LineChartsData[0].AllLineChartX,
+                datasets: [{
+                    label:'All Cummulative Time Period',
+                    backgroundColor:'#33FFFA', 
+                    data: this.LineChartsData[0].AllLineChartY,                                       
+                    fill:false
+                }]
             },
             options: {
                 legend: {
@@ -284,8 +190,13 @@ export class WeibullAnalysis {
         this.Chart2 = new Chart('chart2', {
             type: 'line',
             data: {
-                labels: this.lineChartLabels,
-                datasets: this.LineChart2,
+                labels: this.LineChartsData[1].FirstHalfLineChartX,
+                datasets: [{
+                    label:'First Half Cummulative Time Period',
+                    backgroundColor:'#33FFFA',
+                    data: this.LineChartsData[1].FirstHalfLineChartY,                    
+                    fill:false
+                }]
             },
             options: {
                 legend: {
@@ -317,8 +228,13 @@ export class WeibullAnalysis {
         this.Chart3 = new Chart('chart3', {
             type: 'line',
             data: {
-                labels: this.lineChartLabels,
-                datasets: this.LineChart3,
+                labels: this.LineChartsData[2].SecondHalfLineChartX,
+                datasets: [{
+                    label:'Second Half Cummulative Time Period',
+                    backgroundColor:'#33FFFA',
+                    data: this.LineChartsData[2].SecondHalfLineChartY,                    
+                    fill:false
+                }]
             },
             options: {
                 legend: {
@@ -351,8 +267,13 @@ export class WeibullAnalysis {
         this.Chart4 = new Chart('chart4', {
             type: 'line',
             data: {
-                labels: this.lineChartLabels,
-                datasets: this.LineChart4,
+                labels: this.LineChartsData[3].ThirdHalfLineChartX,
+                datasets: [{
+                    label:'Third Half Cummulative Time Period',
+                    backgroundColor:'#33FFFA',
+                    data: this.LineChartsData[3].ThirdHalfLineChartY,                    
+                    fill:false
+                }]
             },
             options: {
                 legend: {

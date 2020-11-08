@@ -5,6 +5,7 @@ import { AdminComponent } from "./Admin/admin.component";
 import { UserComponent } from "./User/user.component";
 import { RuleEngineComponent } from './RuleEngine/rule-engine.component';
 import { WeibullAnalysis } from './WeibullAnalysis/weibull-analysis.component';
+import {ForecastComponent} from './Forecast/forecast.component'
 
 @NgModule({
     imports: [
@@ -17,6 +18,7 @@ import { WeibullAnalysis } from './WeibullAnalysis/weibull-analysis.component';
                     { path: 'User', component: UserComponent },
                     { path: 'RuleEngine', component: RuleEngineComponent },
                     { path: 'WeibullAnalysis', component: WeibullAnalysis },
+                    { path: 'Forecast', component: ForecastComponent },
                 ]
             },
 

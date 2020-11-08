@@ -304,7 +304,129 @@ def weibullAnalysis(request):
             quickCalData = [{"Beta": Beta, "Alpha": Alpha}]
             json_data.append(quickCalData)
             return JsonResponse(json_data, safe=False)
-            print(weibullData)
 
     except Exception as e:
         return JsonResponse(e, safe=False)
+
+def forecast(request):
+    try:
+        if request.method == 'POST':
+            cumYeartolFile = request.FILES['cumYeartol']
+            cumYeartol = pd.read_csv(cumYeartolFile, delimiter=',').replace(np.nan, 0)
+            column = list(cumYeartol.columns)
+            totrow = cumYeartol[column[0]].count()
+            cum_time_period_tol = list()
+            cum_time_period_tol.append(360)
+            log_time_period = list()
+            log_cum_fail = list()
+            for i, year in enumerate(cumYeartol[column[0]]):
+                if (i != 0):
+                    cum_time_period_tol.append(cum_time_period_tol[i - 1] + 360)
+                log_time_period.append(round(math.log(cum_time_period_tol[i]), 2))
+            cumYeartol["Cummulative Time Period"] = cum_time_period_tol
+            cumYeartol["Log Of Time Period"] = log_time_period
+            for i, fail in enumerate(cumYeartol[column[1]]):
+                log_cum_fail.append(round(math.log(fail), 2))
+            cumYeartol["Log Of Cummulative Failure"] = log_cum_fail
+            cumYeartol['temp'] = cumYeartol["Cummulative Time Period"]
+            cumYeartol["Cummulative Time Period"] = cumYeartol[column[1]]
+            cumYeartol[column[1]] = cumYeartol['temp']
+            cumYeartol.drop(columns=['temp'], inplace=True)
+
+            cumYeartolColumn = list(cumYeartol.columns)
+
+            json_data = []
+            json_data.append(cumYeartolColumn)
+            cumYeartolresult = cumYeartol.to_json(orient="values")
+            cumYeartolparsed = json.loads(cumYeartolresult)
+            cumYeartoldata = []
+            for row in cumYeartolparsed:
+                cumYeartoldata.append(dict(zip(cumYeartolColumn, row)))
+            json_data.append(cumYeartoldata)
+
+            slope, intercept, r_value, p_value, std_err = linregress(log_time_period, log_cum_fail)
+            allBetaVal = slope
+            allAlphaVal = math.exp(-intercept / slope)
+
+            first_half_log_time_period = list()
+            first_half_log_cum_fail = list()
+            for i in range(0, (int(totrow / 2))):
+                first_half_log_time_period.append(round(log_time_period[i], 2))
+
+            for i in range(0, (int(totrow / 2))):
+                first_half_log_cum_fail.append(round(log_cum_fail[i], 2))
+
+            slope, intercept, r_value, p_value, std_err = linregress(first_half_log_time_period,
+                                                                     first_half_log_cum_fail)
+            first_halfBetaVal = slope
+            first_halfAlphaVal = math.exp(-intercept / slope)
+
+            second_half_log_time_period = list()
+            second_half_log_cum_fail = list()
+
+            for i in range(int(totrow / 2), totrow):
+                second_half_log_time_period.append(round(log_time_period[i], 2))
+            for i in range(int(totrow / 2), totrow):
+                second_half_log_cum_fail.append(round(log_cum_fail[i], 2))
+
+            slope, intercept, r_value, p_value, std_err = linregress(second_half_log_time_period,
+                                                                     second_half_log_cum_fail)
+            second_halfBetaVal = slope
+            second_halfAlphaVal = math.exp(-intercept / slope)
+
+            third_half_log_time_period = list()
+            third_half_log_cum_fail = list()
+
+            for i in range(2, totrow - 1):
+                third_half_log_time_period.append(round(log_time_period[i], 2))
+            for i in range(2, totrow - 1):
+                third_half_log_cum_fail.append(round(log_cum_fail[i], 2))
+
+            slope, intercept, r_value, p_value, std_err = linregress(third_half_log_time_period,
+                                                                     third_half_log_cum_fail)
+            third_halfBetaVal = slope
+            third_halfAlphaVal = math.exp(-intercept / slope)
+
+
+            predictDF = pd.DataFrame(
+                columns=['Years', 'Cummulative Time Period',  'All Beta Cal', 'First Half Beta Cal', 'Second Half Beta Cal',
+                         'Third Half Beta Cal'])
+            yearVal = cumYeartol[column[0]][totrow - 1]
+            timeVal = cumYeartol[column[1]][totrow - 1]
+            for i in range(totrow - 1, totrow + 4):
+                yearVal = yearVal + 1
+                timeVal = timeVal + 360
+                predictDF.loc[i] = [yearVal] + [timeVal] + [
+                    round(math.pow((timeVal / allAlphaVal), allBetaVal))] + [
+                                       round(math.pow((timeVal / first_halfAlphaVal), first_halfBetaVal))] + [
+                        round(math.pow((timeVal / second_halfAlphaVal), second_halfBetaVal))] + [
+                                       round(math.pow((timeVal / third_halfAlphaVal), third_halfBetaVal))]
+            predictDFColumn = list(predictDF.columns)
+            json_data.append(predictDFColumn)
+            predictDFresult = predictDF.to_json(orient="values")
+            predictDFparsed = json.loads(predictDFresult)
+            predictDFdata = []
+            for row in predictDFparsed:
+                predictDFdata.append(dict(zip(predictDFColumn, row)))
+            json_data.append(predictDFdata)
+
+            quickCalData = []
+            quickCalData.append({"AllBeta": round(allBetaVal,2), "AllAlpha": round(allAlphaVal, 2)})
+            quickCalData.append({"FirstBeta": round(first_halfBetaVal, 2), "FirstAlpha": round(first_halfAlphaVal, 2)})
+            quickCalData.append({"SecondBeta": round(second_halfBetaVal, 2), "SecondAlpha": round(second_halfAlphaVal, 2)})
+            quickCalData.append({"ThirdBeta": round(third_halfBetaVal, 2), "ThirdAlpha": round(third_halfAlphaVal, 2)})
+
+            json_data.append(quickCalData)
+
+            lineChartsData = []
+            lineChartsData.append({"AllLineChartX": log_time_period, "AllLineChartY": log_cum_fail})
+            lineChartsData.append({"FirstHalfLineChartX": first_half_log_time_period, "FirstHalfLineChartY": first_half_log_cum_fail})
+            lineChartsData.append({"SecondHalfLineChartX": second_half_log_time_period, "SecondHalfLineChartY": second_half_log_cum_fail})
+            lineChartsData.append({"ThirdHalfLineChartX": third_half_log_time_period, "ThirdHalfLineChartY": third_half_log_cum_fail})
+
+            json_data.append(lineChartsData)
+            return JsonResponse(json_data, safe=False)
+
+    except Exception as e:
+        return JsonResponse(e, safe=False)
+

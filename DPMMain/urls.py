@@ -11,5 +11,6 @@ urlpatterns = [
     path('Predicted',include('DPMAPI.predictedUrl')),
     path('RuleEngine', include('DPMAPI.ruleEngineUrl')),
     path('WeibullAnalysis', include('DPMAPI.weibullAnalysisUrl')),
+    path('Forecast', include('DPMAPI.forecastUrl')),
     url('', TemplateView.as_view(template_name="index.html"), name="index")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
